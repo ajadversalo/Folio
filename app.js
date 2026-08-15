@@ -381,24 +381,32 @@ let pageSoundEnabled = localStorage.getItem("folio-page-sound") !== "0";
 const pageEl = document.querySelector("#page");
 const settingsDialog = document.querySelector("#settingsDialog");
 const pageSoundToggle = document.querySelector("#pageSoundToggle");
+let pageAudioContext;
 
-function playPageSound() {
+async function playPageSound() {
   if (!pageSoundEnabled) return;
   const AudioContextClass = window.AudioContext || window.webkitAudioContext;
   if (!AudioContextClass) return;
-  const audioContext = new AudioContextClass();
-  const oscillator = audioContext.createOscillator();
-  const gain = audioContext.createGain();
-  const now = audioContext.currentTime;
-  oscillator.type = "sine";
-  oscillator.frequency.setValueAtTime(620, now);
+  pageAudioContext ||= new AudioContextClass();
+  if (pageAudioContext.state === "suspended") {
+    try { await pageAudioContext.resume(); }
+    catch { return; }
+  }
+  const oscillator = pageAudioContext.createOscillator();
+  const gain = pageAudioContext.createGain();
+  const now = pageAudioContext.currentTime;
+  oscillator.type = "triangle";
+  oscillator.frequency.setValueAtTime(680, now);
   gain.gain.setValueAtTime(0.0001, now);
-  gain.gain.exponentialRampToValueAtTime(0.055, now + 0.008);
-  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.07);
-  oscillator.connect(gain).connect(audioContext.destination);
+  gain.gain.exponentialRampToValueAtTime(0.16, now + 0.008);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.11);
+  oscillator.connect(gain).connect(pageAudioContext.destination);
   oscillator.start(now);
-  oscillator.stop(now + 0.075);
-  oscillator.addEventListener("ended", () => audioContext.close());
+  oscillator.stop(now + 0.115);
+  oscillator.addEventListener("ended", () => {
+    oscillator.disconnect();
+    gain.disconnect();
+  });
 }
 
 function setPage(index) {
