@@ -382,6 +382,23 @@ const pageEl = document.querySelector("#page");
 const settingsDialog = document.querySelector("#settingsDialog");
 const pageSoundToggle = document.querySelector("#pageSoundToggle");
 let pageAudioContext;
+let pageSoundBuffer;
+let activePageSound;
+
+function createPageSoundBuffer(audioContext) {
+  const duration = 0.12;
+  const sampleCount = Math.ceil(audioContext.sampleRate * duration);
+  const buffer = audioContext.createBuffer(1, sampleCount, audioContext.sampleRate);
+  const samples = buffer.getChannelData(0);
+  for (let i = 0; i < sampleCount; i += 1) {
+    const time = i / audioContext.sampleRate;
+    const attack = Math.min(1, time / 0.006);
+    const decay = Math.pow(1 - (i / sampleCount), 2.4);
+    const tone = Math.sin(2 * Math.PI * 680 * time) + (0.2 * Math.sin(2 * Math.PI * 1360 * time));
+    samples[i] = tone * attack * decay * 0.28;
+  }
+  return buffer;
+}
 
 async function playPageSound() {
   if (!pageSoundEnabled) return;
@@ -392,20 +409,19 @@ async function playPageSound() {
     try { await pageAudioContext.resume(); }
     catch { return; }
   }
-  const oscillator = pageAudioContext.createOscillator();
-  const gain = pageAudioContext.createGain();
-  const now = pageAudioContext.currentTime;
-  oscillator.type = "triangle";
-  oscillator.frequency.setValueAtTime(680, now);
-  gain.gain.setValueAtTime(0.0001, now);
-  gain.gain.exponentialRampToValueAtTime(0.16, now + 0.008);
-  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.11);
-  oscillator.connect(gain).connect(pageAudioContext.destination);
-  oscillator.start(now);
-  oscillator.stop(now + 0.115);
-  oscillator.addEventListener("ended", () => {
-    oscillator.disconnect();
-    gain.disconnect();
+  pageSoundBuffer ||= createPageSoundBuffer(pageAudioContext);
+  if (activePageSound) {
+    try { activePageSound.stop(); }
+    catch {}
+  }
+  const source = pageAudioContext.createBufferSource();
+  activePageSound = source;
+  source.buffer = pageSoundBuffer;
+  source.connect(pageAudioContext.destination);
+  source.start();
+  source.addEventListener("ended", () => {
+    source.disconnect();
+    if (activePageSound === source) activePageSound = null;
   });
 }
 
