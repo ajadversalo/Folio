@@ -19,6 +19,7 @@
         <button class="text-button" id="themeButton" aria-label="Change reading theme">Aa</button>
         <button class="text-button font-control" id="fontIncrease" aria-label="Increase page font size">A+</button>
         <button class="icon-button bookmark-button" id="bookmarkButton" aria-label="Bookmark this page">◇</button>
+        <button class="icon-button settings-button" id="settingsButton" aria-label="Open settings" title="Settings">⚙</button>
       </div>
     </header>
 
@@ -43,6 +44,17 @@
     </main>
   </div>
   <div class="scrim" id="scrim"></div>
+  <dialog class="settings-dialog" id="settingsDialog" aria-labelledby="settingsTitle">
+    <div class="settings-head">
+      <div><span class="eyebrow">Preferences</span><h2 id="settingsTitle">Reading settings</h2></div>
+      <button class="close-button settings-close" id="settingsCloseButton" aria-label="Close settings">×</button>
+    </div>
+    <label class="setting-row" for="pageSoundToggle">
+      <span><strong>Page sound</strong><small>Play a short beep when switching pages</small></span>
+      <input type="checkbox" id="pageSoundToggle">
+      <i aria-hidden="true"></i>
+    </label>
+  </dialog>
   <div class="toast" id="toast" role="status"></div>
   <script src="app.js"></script>
 </body>
