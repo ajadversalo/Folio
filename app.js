@@ -365,6 +365,263 @@ const awaitingContent = (letter, name, chapterNumber) => ({
   content: `<div class="awaiting"><span>${letter}</span><p>Send the material whenever you’re ready, and it will be arranged into focused reading pages.</p></div>`
 });
 
+const diFundamentalsPages = [
+  {
+    kicker: "OOP / Dependency Injection / The Problem",
+    title: "What problem does DI solve?",
+    lead: "Dependency Injection separates an object from the responsibility of constructing the services it needs.",
+    content: `<p>Without DI, classes commonly create concrete dependencies themselves. That decision ties the consumer to one implementation and mixes object construction with business behavior.</p><div class="flow"><span>Consumer</span><b>→</b><span>Creates dependency</span><b>→</b><span>Tight coupling</span></div><section class="takeaway"><span>Core problem</span><p>When a class controls both what dependency it uses and how that dependency is created, changing or isolating the class becomes difficult.</p></section>`
+  },
+  {
+    kicker: "OOP / Dependency Injection / Tight Coupling",
+    title: "Without DI: Car creates Engine",
+    lead: "The Car constructor directly selects and creates a specific V6Engine.",
+    content: `<div class="code-label bad"><span>×</span><div><strong>Tightly coupled</strong><small>Concrete construction inside the consumer</small></div></div><pre><span class="language">C#</span><code>public class Car
+{
+    private V6Engine _engine;
+
+    public Car()
+    {
+        // Car is coupled to this specific implementation
+        _engine = new V6Engine();
+    }
+}</code></pre><div class="concept-list"><section><span>01</span><div><h3>Hard to change</h3><p>Switching to an <code>ElectricEngine</code> requires editing the <code>Car</code> class.</p></div></section><section><span>02</span><div><h3>Hard to test</h3><p>A test cannot isolate <code>Car</code> from the real engine, which may perform costly or external work.</p></div></section></div>`
+  },
+  {
+    kicker: "OOP / Dependency Injection / Inversion of Control",
+    title: "With DI: receive the Engine",
+    lead: "Invert control by accepting an abstraction from outside instead of constructing a concrete dependency.",
+    content: `<div class="code-section"><div class="code-label good"><span>1</span><div><strong>Define the abstraction</strong><small>The capability Car requires</small></div></div><pre><span class="language">C#</span><code>public interface IEngine
+{
+    void Start();
+}</code></pre></div><div class="code-section"><div class="code-label good"><span>2</span><div><strong>Use constructor injection</strong><small>The dependency arrives from outside</small></div></div><pre><span class="language">C#</span><code>public class Car
+{
+    private readonly IEngine _engine;
+
+    public Car(IEngine engine)
+    {
+        _engine = engine;
+    }
+
+    public void Drive()
+    {
+        _engine.Start();
+    }
+}</code></pre></div><div class="benefit-grid"><article><strong>Flexibility</strong><p>Car can use a V6Engine, ElectricEngine, or another compatible implementation without changing.</p></article><article><strong>Testability</strong><p>A unit test can supply a fake engine and verify Car in isolation.</p></article></div>`
+  },
+  {
+    kicker: "OOP / Dependency Injection / Core Parts",
+    title: "The three roles in DI",
+    lead: "A DI system connects an abstraction, an implementation, and an external composition mechanism.",
+    content: `<div class="concept-list"><section><span>01</span><div><h3>Service abstraction</h3><p>The contract describing what a component can do—for example, <code>IEngine</code>.</p></div></section><section><span>02</span><div><h3>Implementation</h3><p>The concrete class that performs the work—for example, <code>V6Engine</code> or <code>ElectricEngine</code>.</p></div></section><section><span>03</span><div><h3>Injector or container</h3><p>The external composition system that creates classes and supplies their dependencies.</p></div></section></div><div class="flow"><span>IEngine</span><b>→</b><span>DI container</span><b>→</b><span>Car</span></div>`
+  },
+  {
+    kicker: "OOP / Dependency Injection / Lifetimes",
+    title: "Where service lifetimes fit",
+    lead: "Once a container owns object creation, it needs instructions for how often to create and reuse each service.",
+    content: `<div class="definition-pair"><article><span>Transient</span><div><strong>New every time</strong><p>Create a fresh instance for every resolution.</p></div></article><article><span>Scoped</span><div><strong>One per operation</strong><p>Reuse an instance within the current scope, such as one HTTP request.</p></div></article><article><span>Singleton</span><div><strong>One per application</strong><p>Reuse the same instance for the host process's lifetime.</p></div></article></div><section class="takeaway"><span>Connection</span><p>Dependency Injection moves creation outside the consumer; the registered service lifetime tells the container when that external creation occurs.</p></section>`
+  }
+];
+
+const diMethodPages = [
+  {
+    kicker: "OOP / Dependency Injection / Injection Methods",
+    title: "Three ways to supply a dependency",
+    lead: "Injection types are distinguished by where and when a consuming class receives its dependency.",
+    content: `<div class="concept-list"><section><span>01</span><div><h3>Constructor injection</h3><p>Supply required dependencies when the object is created.</p></div></section><section><span>02</span><div><h3>Property injection</h3><p>Assign optional dependencies after object construction.</p></div></section><section><span>03</span><div><h3>Method injection</h3><p>Provide a dependency only to the operation that needs it.</p></div></section></div><section class="takeaway"><span>Default choice</span><p>Prefer constructor injection for required collaborators. Use property or method injection only when their optional or call-specific semantics match the design.</p></section>`
+  },
+  {
+    kicker: "OOP / Dependency Injection / Constructor Injection",
+    title: "Constructor injection",
+    lead: "Required dependencies are passed to the constructor when the consuming object is instantiated.",
+    content: `<pre><span class="language">C#</span><code>public class OrderProcessor
+{
+    private readonly INotificationService _notifier;
+
+    public OrderProcessor(INotificationService notifier)
+    {
+        _notifier = notifier
+            ?? throw new ArgumentNullException(nameof(notifier));
+    }
+
+    public void ProcessOrder(Order order)
+    {
+        _notifier.SendReceipt(order);
+    }
+}</code></pre><section class="takeaway"><span>When to use</span><p>The default choice for almost every required class-level dependency.</p></section><div class="benefit-grid"><article><strong>Valid by construction</strong><p>An OrderProcessor cannot be created without its required notification service.</p></article><article><strong>Immutable reference</strong><p>The dependency can be readonly, preventing reassignment after construction.</p></article><article><strong>Explicit contract</strong><p>The constructor clearly communicates everything callers must supply.</p></article></div>`
+  },
+  {
+    kicker: "OOP / Dependency Injection / Property Injection",
+    title: "Property or setter injection",
+    lead: "A public property receives an optional dependency after the object has already been created.",
+    content: `<pre><span class="language">C#</span><code>public class UserProfileComponent
+{
+    // Optional dependency with a safe default
+    public ILogger Logger { get; set; } = new NullLogger();
+
+    public void Render()
+    {
+        Logger.Log("Rendering profile");
+    }
+}</code></pre><section class="takeaway"><span>When to use</span><p>Optional dependencies with sensible defaults, or frameworks that require parameterless construction.</p></section><div class="concept-list"><section><span>+</span><div><h3>Useful for optional behavior</h3><p>The class can operate with its fallback when no external implementation is assigned.</p></div></section><section><span>!</span><div><h3>Mutable or invalid state</h3><p>Without a safe default, methods may run before the property is initialized. The dependency can also be replaced unexpectedly later.</p></div></section></div>`
+  },
+  {
+    kicker: "OOP / Dependency Injection / Method Injection",
+    title: "Method injection",
+    lead: "A dependency is supplied directly to the specific operation that needs it instead of being stored by the class.",
+    content: `<pre><span class="language">C#</span><code>public class ReportGenerator
+{
+    public void Generate(
+        ReportData data,
+        IReportExporter exporter)
+    {
+        var formattedData = TransformData(data);
+        exporter.Export(formattedData);
+    }
+}</code></pre><section class="takeaway"><span>When to use</span><p>Dependencies needed by only one method, or strategies whose implementation should vary per invocation.</p></section><div class="benefit-grid"><article><strong>No unnecessary field</strong><p>The class does not retain a collaborator used by only one operation.</p></article><article><strong>Dynamic strategy</strong><p>A caller can pass PdfExporter for one call and CsvExporter for another.</p></article><article><strong>ASP.NET Core</strong><p>Controller actions can request method-level services with <code>[FromServices]</code>; minimal API handlers support service parameter binding.</p></article></div>`
+  },
+  {
+    kicker: "OOP / Dependency Injection / Injection Methods",
+    title: "Injection method comparison",
+    lead: "Choose the injection point that reflects whether the dependency belongs to the object, is optional, or exists for one call.",
+    content: `<div class="table-wrap"><table><thead><tr><th>Injection type</th><th>Requirement</th><th>Lifetime alignment</th><th>Primary use</th></tr></thead><tbody><tr><td><strong>Constructor</strong></td><td>Mandatory</td><td>Consuming class lifetime</td><td>Core service dependencies</td></tr><tr><td><strong>Property</strong></td><td>Optional</td><td>Post-initialization</td><td>Optional features and default fallbacks</td></tr><tr><td><strong>Method</strong></td><td>Call-specific</td><td>Method invocation</td><td>On-demand tools and varying strategies</td></tr></tbody></table></div><section class="takeaway"><span>Decision rule</span><p>If the class cannot do its job without the dependency, require it in the constructor. If the dependency changes per operation, pass it to that method. Reserve property injection for genuinely optional behavior.</p></section>`
+  }
+];
+
+const manualVsContainerPages = [
+  {
+    kicker: "OOP / Dependency Injection / Manual vs Container",
+    title: "Two ways to compose an object graph",
+    lead: "Pure DI wires dependencies directly in application code; container-managed DI builds the same graph from registrations.",
+    content: `<div class="definition-pair"><article><span>Manual</span><div><strong>Pure DI</strong><p>You call constructors and pass each dependency explicitly.</p></div></article><article><span>Container</span><div><strong>Container-managed DI</strong><p>You register service mappings and ask a container to resolve the root object.</p></div></article></div><section class="takeaway"><span>Important</span><p>Both approaches use Dependency Injection. A DI container automates object composition, but it is not required to practice DI.</p></section>`
+  },
+  {
+    kicker: "OOP / Dependency Injection / Console Demo / Setup",
+    title: "Create the console project",
+    lead: "Use the official Microsoft.Extensions.DependencyInjection package without ASP.NET or Web Host infrastructure.",
+    content: `<pre><span class="language">Bash</span><code>dotnet new console -n DiBasicsDemo
+cd DiBasicsDemo
+dotnet add package Microsoft.Extensions.DependencyInjection</code></pre><p>The package provides <code>ServiceCollection</code>, registration extension methods, <code>ServiceProvider</code>, and service-resolution helpers.</p>`
+  },
+  {
+    kicker: "OOP / Dependency Injection / Console Demo / Services",
+    title: "Define the object graph",
+    lead: "NotificationManager depends on IMessageService, whose EmailService implementation depends on ILogger.",
+    content: `<pre><span class="language">C#</span><code>using System;
+using Microsoft.Extensions.DependencyInjection;
+
+public interface IMessageService
+{
+    void SendMessage(string message);
+}
+
+public interface ILogger
+{
+    void Log(string message);
+}
+
+public class ConsoleLogger : ILogger
+{
+    public void Log(string message)
+        =&gt; Console.WriteLine($"[LOG]: {message}");
+}
+
+public class EmailService : IMessageService
+{
+    private readonly ILogger _logger;
+
+    public EmailService(ILogger logger)
+    {
+        _logger = logger;
+    }
+
+    public void SendMessage(string message)
+    {
+        _logger.Log($"Sending Email: '{message}'");
+    }
+}
+
+public class NotificationManager
+{
+    private readonly IMessageService _messageService;
+
+    public NotificationManager(IMessageService messageService)
+    {
+        _messageService = messageService;
+    }
+
+    public void NotifyUser(string text)
+    {
+        _messageService.SendMessage(text);
+    }
+}</code></pre><div class="flow"><span>NotificationManager</span><b>→</b><span>EmailService</span><b>→</b><span>ConsoleLogger</span></div>`
+  },
+  {
+    kicker: "OOP / Dependency Injection / Console Demo / Manual DI",
+    title: "Compose the graph manually",
+    lead: "Pure DI creates each object explicitly, beginning with the graph's leaf dependency.",
+    content: `<pre><span class="language">C#</span><code>static void RunManualDi()
+{
+    ILogger logger = new ConsoleLogger();
+    IMessageService emailService = new EmailService(logger);
+    NotificationManager manager =
+        new NotificationManager(emailService);
+
+    manager.NotifyUser("Hello via Manual DI!");
+}</code></pre><section class="takeaway"><span>What happens</span><p>The composition root constructs ConsoleLogger, injects it into EmailService, then injects EmailService into NotificationManager.</p></section><div class="benefit-grid"><article><strong>Explicit</strong><p>The complete graph is visible in ordinary C# code.</p></article><article><strong>Simple at small scale</strong><p>No container setup or resolution API is required.</p></article><article><strong>Grows verbose</strong><p>Composition becomes tedious as the graph gains more services and nested dependencies.</p></article></div>`
+  },
+  {
+    kicker: "OOP / Dependency Injection / Console Demo / Container DI",
+    title: "Let the container compose the graph",
+    lead: "Register mappings and lifetimes, build the provider, and resolve only the root object.",
+    content: `<pre><span class="language">C#</span><code>static void RunContainerDi()
+{
+    // The registration blueprint
+    var services = new ServiceCollection();
+
+    services.AddTransient&lt;ILogger, ConsoleLogger&gt;();
+    services.AddTransient&lt;IMessageService, EmailService&gt;();
+    services.AddTransient&lt;NotificationManager&gt;();
+
+    // Build and own the container
+    using ServiceProvider serviceProvider =
+        services.BuildServiceProvider();
+
+    // Resolve the root; nested dependencies are automatic
+    var manager = serviceProvider
+        .GetRequiredService&lt;NotificationManager&gt;();
+
+    manager.NotifyUser("Hello via DI Container!");
+}</code></pre><ol class="principle-list"><li><span>A</span><p>Create a <code>ServiceCollection</code> to hold registrations.</p></li><li><span>B</span><p>Map abstractions to implementations and select lifetimes.</p></li><li><span>C</span><p>Build and retain the <code>ServiceProvider</code>.</p></li><li><span>D</span><p>Resolve the root object; the container recursively supplies its dependencies.</p></li></ol>`
+  },
+  {
+    kicker: "OOP / Dependency Injection / Console Demo / Program",
+    title: "Run both approaches",
+    lead: "One entry point invokes both composition styles so their behavior can be compared directly.",
+    content: `<pre><span class="language">C#</span><code>class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine(
+            "=== 1. MANUAL DEPENDENCY INJECTION ===");
+        RunManualDi();
+
+        Console.WriteLine(
+            "\n=== 2. CONTAINER-MANAGED DEPENDENCY INJECTION ===");
+        RunContainerDi();
+    }
+
+    // RunManualDi and RunContainerDi from the previous pages
+}</code></pre><p>Both paths ultimately create the same chain and produce equivalent behavior. The difference is who performs the construction and wiring.</p>`
+  },
+  {
+    kicker: "OOP / Dependency Injection / Manual vs Container",
+    title: "Choose the composition style",
+    lead: "Use the simplest approach that keeps the application's composition understandable and maintainable.",
+    content: `<div class="table-wrap"><table><thead><tr><th>Approach</th><th>Construction</th><th>Strength</th><th>Tradeoff</th></tr></thead><tbody><tr><td><strong>Manual DI</strong><small>Pure DI</small></td><td>Explicit constructor calls</td><td>Transparent and easy to trace</td><td>Verbose for large dependency graphs</td></tr><tr><td><strong>Container DI</strong></td><td>Registration plus root resolution</td><td>Automates nested construction and lifetime management</td><td>Registrations must be kept valid and discoverable</td></tr></tbody></table></div><section class="takeaway"><span>Key takeaway</span><p>Manual DI is often ideal for small graphs. A container becomes valuable as composition, lifetimes, and disposal grow more complex. When the provider is disposed, it also disposes the disposable service instances it owns.</p></section>`
+  }
+];
+
 const diLifecyclePages = [
   {
     kicker: "OOP / Dependency Injection / Service Lifetimes",
@@ -451,6 +708,165 @@ public class ProductCatalogService
   }
 ];
 
+const diGuidDemoPages = [
+  {
+    kicker: "OOP / Dependency Injection / GUID Demo",
+    title: "Visualize DI lifetimes with GUIDs",
+    lead: "A unique GUID created by each service instance makes reuse and recreation visible across consumers and HTTP requests.",
+    content: `<p>This ASP.NET Core API demo resolves transient, scoped, and singleton services twice during the same request: once in a controller and once through a secondary consumer. Comparing the returned IDs reveals each lifetime boundary.</p><div class="flow"><span>HTTP request</span><b>→</b><span>Controller + SubService</span><b>→</b><span>Compare service IDs</span></div><section class="takeaway"><span>Test method</span><p>Call the endpoint at least twice. First compare the controller and secondary consumer within one response, then compare the two responses.</p></section>`
+  },
+  {
+    kicker: "OOP / Dependency Injection / GUID Demo / Services",
+    title: "Interfaces and implementation",
+    lead: "Three interfaces allow one implementation type to be registered with three different lifetimes.",
+    content: `<p>Each container-created <code>OperationService</code> receives a GUID when its constructor/property initializer runs.</p><pre><span class="language">C#</span><code>public interface ITransientService
+{
+    Guid Id { get; }
+}
+
+public interface IScopedService
+{
+    Guid Id { get; }
+}
+
+public interface ISingletonService
+{
+    Guid Id { get; }
+}
+
+public class OperationService :
+    ITransientService,
+    IScopedService,
+    ISingletonService
+{
+    public Guid Id { get; } = Guid.NewGuid();
+}</code></pre>`
+  },
+  {
+    kicker: "OOP / Dependency Injection / GUID Demo / Registration",
+    title: "Register each lifetime",
+    lead: "Map each interface to OperationService using its corresponding container registration method.",
+    content: `<pre><span class="language">C#</span><code>var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddControllers();
+
+builder.Services.AddTransient&lt;ITransientService, OperationService&gt;();
+builder.Services.AddScoped&lt;IScopedService, OperationService&gt;();
+builder.Services.AddSingleton&lt;ISingletonService, OperationService&gt;();
+
+// A second consumer resolved during the same request
+builder.Services.AddTransient&lt;SubService&gt;();
+
+var app = builder.Build();
+
+app.MapControllers();
+app.Run();</code></pre><section class="takeaway"><span>Why three interfaces?</span><p>The registration is keyed by service type. Separate interfaces let the container apply a distinct lifetime to each view of the same implementation.</p></section>`
+  },
+  {
+    kicker: "OOP / Dependency Injection / GUID Demo / Consumer",
+    title: "Add a secondary consumer",
+    lead: "SubService resolves all three lifetimes alongside the controller during the same request.",
+    content: `<pre><span class="language">C#</span><code>public class SubService
+{
+    public ITransientService Transient { get; }
+    public IScopedService Scoped { get; }
+    public ISingletonService Singleton { get; }
+
+    public SubService(
+        ITransientService transient,
+        IScopedService scoped,
+        ISingletonService singleton)
+    {
+        Transient = transient;
+        Scoped = scoped;
+        Singleton = singleton;
+    }
+}</code></pre><p>The controller and <code>SubService</code> create two resolution points. Transient IDs should differ, while scoped and singleton IDs should match within the response.</p>`
+  },
+  {
+    kicker: "OOP / Dependency Injection / GUID Demo / Controller",
+    title: "Return both sets of IDs",
+    lead: "The controller exposes its directly injected IDs beside those received by SubService.",
+    content: `<pre><span class="language">C#</span><code>using Microsoft.AspNetCore.Mvc;
+
+[ApiController]
+[Route("api/[controller]")]
+public class LifetimeDemoController : ControllerBase
+{
+    private readonly ITransientService _transient;
+    private readonly IScopedService _scoped;
+    private readonly ISingletonService _singleton;
+    private readonly SubService _subService;
+
+    public LifetimeDemoController(
+        ITransientService transient,
+        IScopedService scoped,
+        ISingletonService singleton,
+        SubService subService)
+    {
+        _transient = transient;
+        _scoped = scoped;
+        _singleton = singleton;
+        _subService = subService;
+    }
+
+    [HttpGet]
+    public IActionResult Get()
+    {
+        return Ok(new
+        {
+            Controller = new
+            {
+                Transient = _transient.Id,
+                Scoped = _scoped.Id,
+                Singleton = _singleton.Id
+            },
+            SubService = new
+            {
+                Transient = _subService.Transient.Id,
+                Scoped = _subService.Scoped.Id,
+                Singleton = _subService.Singleton.Id
+            }
+        });
+    }
+}</code></pre>`
+  },
+  {
+    kicker: "OOP / Dependency Injection / GUID Demo / Results",
+    title: "Compare two requests",
+    lead: "The relationships between IDs—not the example GUID values themselves—demonstrate the lifetimes.",
+    content: `<div class="code-section"><div class="code-label good"><span>1</span><div><strong>Request 1</strong><small>Controller and SubService in one scope</small></div></div><pre><span class="language">JSON</span><code>{
+  "controller": {
+    "transient": "11111111-1111-1111-1111-111111111111",
+    "scoped":    "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+    "singleton": "99999999-9999-9999-9999-999999999999"
+  },
+  "subService": {
+    "transient": "22222222-2222-2222-2222-222222222222",
+    "scoped":    "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+    "singleton": "99999999-9999-9999-9999-999999999999"
+  }
+}</code></pre></div><div class="code-section"><div class="code-label good"><span>2</span><div><strong>Request 2</strong><small>A new request scope</small></div></div><pre><span class="language">JSON</span><code>{
+  "controller": {
+    "transient": "33333333-3333-3333-3333-333333333333",
+    "scoped":    "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+    "singleton": "99999999-9999-9999-9999-999999999999"
+  },
+  "subService": {
+    "transient": "44444444-4444-4444-4444-444444444444",
+    "scoped":    "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+    "singleton": "99999999-9999-9999-9999-999999999999"
+  }
+}</code></pre></div>`
+  },
+  {
+    kicker: "OOP / Dependency Injection / GUID Demo / Observations",
+    title: "Read the GUID pattern",
+    lead: "Each lifetime produces a distinct reuse pattern across injection points and requests.",
+    content: `<div class="concept-list"><section><span>T</span><div><h3>Transient always changes</h3><p>The controller and SubService receive different IDs in the same request, and both IDs change again on the next request.</p></div></section><section><span>S</span><div><h3>Scoped changes per request</h3><p>Both consumers share one ID within a request. A new request creates a new shared ID.</p></div></section><section><span>1</span><div><h3>Singleton remains constant</h3><p>Every consumer receives the same ID across both requests for the lifetime of the host process.</p></div></section></div>`
+  }
+];
+
 book.chapters = [
   {
     number: "01",
@@ -471,7 +887,11 @@ book.chapters = [
         number: "02",
         title: "Dependency Injection",
         sections: [
-          { number: "DI", title: "Service Lifetimes", pages: diLifecyclePages }
+          { number: "01", title: "Why Dependency Injection?", pages: diFundamentalsPages },
+          { number: "02", title: "Injection Methods", pages: diMethodPages },
+          { number: "03", title: "Manual vs Container DI", pages: manualVsContainerPages },
+          { number: "04", title: "Service Lifetimes", pages: diLifecyclePages },
+          { number: "05", title: "GUID Controller Demo", pages: diGuidDemoPages }
         ]
       }
     ]
