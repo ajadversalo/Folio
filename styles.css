@@ -33,10 +33,16 @@ button { cursor:pointer; }
 .progress-track span { display:block; height:100%; background:var(--accent); }
 #contents { border-top:1px solid rgba(255,255,255,.12); }
 .chapter-group { border-bottom:1px solid rgba(255,255,255,.12); padding:12px 0; }
-.chapter-title,.page-link { width:100%; border:0; background:transparent; color:inherit; text-align:left; display:grid; grid-template-columns:32px 1fr; align-items:start; padding:8px 2px; }
+.chapter-title,.topic-title,.section-title,.page-link { width:100%; border:0; background:transparent; color:inherit; text-align:left; display:grid; grid-template-columns:32px 1fr; align-items:start; padding:8px 2px; }
 .chapter-title { font-family:"Instrument Serif"; font-size:17px; }
-.chapter-title span,.page-link span { color:#81958b; font-family:"DM Sans"; font-size:9px; padding-top:5px; letter-spacing:.1em; }
-.page-link { color:#9aaba2; font-size:11px; line-height:1.4; padding-left:32px; grid-template-columns:28px 1fr; }
+.chapter-title span,.topic-title span,.section-title span,.page-link span { color:#81958b; font-family:"DM Sans"; font-size:9px; padding-top:5px; letter-spacing:.1em; }
+.topic-group { padding-left:18px; }
+.topic-title { color:#d7e0db; font-size:12px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
+.section-group { padding-left:18px; }
+.section-title { color:#aebdb5; font-family:"Instrument Serif"; font-size:14px; grid-template-columns:24px 1fr; }
+.section-title.active { color:#fff; }
+.section-title.active span { color:var(--accent); }
+.page-link { color:#9aaba2; font-size:11px; line-height:1.4; padding-left:24px; grid-template-columns:28px 1fr; }
 .page-link.active { color:#fff; }
 .page-link.active span { color:var(--accent); }
 .sidebar-footer { display:flex; justify-content:space-between; margin-top:auto; padding-top:28px; color:#71877c; font-size:9px; text-transform:uppercase; letter-spacing:.16em; }

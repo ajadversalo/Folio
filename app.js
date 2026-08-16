@@ -366,14 +366,38 @@ const awaitingContent = (letter, name, chapterNumber) => ({
 });
 
 book.chapters = [
-  { number: "S", title: "Single Responsibility", pages: srpPages },
-  { number: "O", title: "Open / Closed", pages: ocpPages },
-  { number: "L", title: "Liskov Substitution", pages: lspPages },
-  { number: "I", title: "Interface Segregation", pages: ispPages },
-  { number: "D", title: "Dependency Inversion", pages: dipPages }
+  {
+    number: "01",
+    title: "Object-Oriented Programming",
+    topics: [
+      {
+        number: "01",
+        title: "SOLID",
+        sections: [
+          { number: "S", title: "Single Responsibility", pages: srpPages },
+          { number: "O", title: "Open / Closed", pages: ocpPages },
+          { number: "L", title: "Liskov Substitution", pages: lspPages },
+          { number: "I", title: "Interface Segregation", pages: ispPages },
+          { number: "D", title: "Dependency Inversion", pages: dipPages }
+        ]
+      }
+    ]
+  }
 ];
 
-const pages = book.chapters.flatMap((chapter, chapterIndex) => chapter.pages.map((page, pageIndex) => ({...page, chapterIndex, pageIndex})));
+const pages = book.chapters.flatMap((chapter, chapterIndex) =>
+  chapter.topics.flatMap((topic, topicIndex) =>
+    topic.sections.flatMap((section, sectionIndex) =>
+      section.pages.map((page, pageIndex) => ({
+        ...page,
+        chapterIndex,
+        topicIndex,
+        sectionIndex,
+        pageIndex
+      }))
+    )
+  )
+);
 let current = Math.min(Number(localStorage.getItem("folio-page") || 0), pages.length - 1);
 let theme = localStorage.getItem("folio-theme") || "paper";
 let readerSize = Math.max(14, Math.min(22, Number(localStorage.getItem("folio-font-size") || 16)));
@@ -434,7 +458,26 @@ function setPage(index) {
 }
 
 function renderContents() {
-  document.querySelector("#contents").innerHTML = book.chapters.map((chapter, ci) => `<section class="chapter-group"><button class="chapter-title" data-page="${pages.findIndex(p => p.chapterIndex === ci)}"><span>${chapter.number}</span>${chapter.title}</button>${chapter.pages.map((page, pi) => { const i = pages.findIndex(p => p.chapterIndex === ci && p.pageIndex === pi); return `<button class="page-link ${i === current ? "active" : ""}" data-page="${i}"><span>${String(i + 1).padStart(2,"0")}</span>${page.title}</button>`; }).join("")}</section>`).join("");
+  document.querySelector("#contents").innerHTML = book.chapters.map((chapter, ci) =>
+    `<section class="chapter-group">
+      <button class="chapter-title" data-page="${pages.findIndex(p => p.chapterIndex === ci)}"><span>${chapter.number}</span>${chapter.title}</button>
+      ${chapter.topics.map((topic, ti) =>
+        `<div class="topic-group">
+          <button class="topic-title" data-page="${pages.findIndex(p => p.chapterIndex === ci && p.topicIndex === ti)}"><span>${topic.number}</span>${topic.title}</button>
+          ${topic.sections.map((section, si) => {
+            const sectionPage = pages.findIndex(p => p.chapterIndex === ci && p.topicIndex === ti && p.sectionIndex === si);
+            return `<div class="section-group">
+              <button class="section-title ${pages[current].sectionIndex === si && pages[current].topicIndex === ti && pages[current].chapterIndex === ci ? "active" : ""}" data-page="${sectionPage}"><span>${section.number}</span>${section.title}</button>
+              ${section.pages.map((page, pi) => {
+                const i = pages.findIndex(p => p.chapterIndex === ci && p.topicIndex === ti && p.sectionIndex === si && p.pageIndex === pi);
+                return `<button class="page-link ${i === current ? "active" : ""}" data-page="${i}"><span>${String(pi + 1).padStart(2,"0")}</span>${page.title}</button>`;
+              }).join("")}
+            </div>`;
+          }).join("")}
+        </div>`
+      ).join("")}
+    </section>`
+  ).join("");
   document.querySelectorAll("[data-page]").forEach(button => button.addEventListener("click", () => { setPage(Number(button.dataset.page)); closeMenu(); }));
 }
 function render() {
