@@ -896,6 +896,32 @@ book.chapters = [
         ]
       }
     ]
+  },
+  {
+    number: "02",
+    title: ".NET",
+    topics: [
+      {
+        number: "01",
+        title: "Project Structure",
+        sections: []
+      },
+      {
+        number: "02",
+        title: "Tasks (Async Await)",
+        sections: []
+      }
+    ]
+  },
+  {
+    number: "03",
+    title: "Testing",
+    topics: []
+  },
+  {
+    number: "04",
+    title: "Documentation",
+    topics: []
   }
 ];
 
