@@ -34,12 +34,17 @@ button { cursor:pointer; }
 #contents { border-top:1px solid rgba(255,255,255,.12); }
 .chapter-group { border-bottom:1px solid rgba(255,255,255,.12); padding:12px 0; }
 .chapter-title,.topic-title,.section-title,.page-link { width:100%; border:0; background:transparent; color:inherit; text-align:left; display:grid; grid-template-columns:32px 1fr; align-items:start; padding:8px 2px; }
+.group-toggle { grid-template-columns:32px minmax(0,1fr) 16px; }
+.group-toggle i { align-self:center; width:7px; height:7px; border-right:1px solid currentColor; border-bottom:1px solid currentColor; transform:rotate(45deg); transition:transform .2s ease; opacity:.65; }
+.group-toggle[aria-expanded="true"] i { transform:rotate(225deg); }
+.group-toggle:hover { color:#fff; }
+.group-children[hidden] { display:none; }
 .chapter-title { font-family:"Instrument Serif"; font-size:17px; }
 .chapter-title span,.topic-title span,.section-title span,.page-link span { color:#81958b; font-family:"DM Sans"; font-size:9px; padding-top:5px; letter-spacing:.1em; }
 .topic-group { padding-left:18px; }
 .topic-title { color:#d7e0db; font-size:12px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
 .section-group { padding-left:18px; }
-.section-title { color:#aebdb5; font-family:"Instrument Serif"; font-size:14px; grid-template-columns:24px 1fr; }
+.section-title { color:#aebdb5; font-family:"Instrument Serif"; font-size:14px; grid-template-columns:24px minmax(0,1fr) 16px; }
 .section-title.active { color:#fff; }
 .section-title.active span { color:var(--accent); }
 .page-link { color:#9aaba2; font-size:11px; line-height:1.4; padding-left:24px; grid-template-columns:28px 1fr; }

@@ -365,6 +365,92 @@ const awaitingContent = (letter, name, chapterNumber) => ({
   content: `<div class="awaiting"><span>${letter}</span><p>Send the material whenever you’re ready, and it will be arranged into focused reading pages.</p></div>`
 });
 
+const diLifecyclePages = [
+  {
+    kicker: "OOP / Dependency Injection / Service Lifetimes",
+    title: "Service lifetimes in .NET",
+    lead: "A service lifetime determines when the built-in DI container creates, shares, and disposes a service instance.",
+    content: `<p>Choosing a lifetime defines the boundary within which consumers receive the same object. .NET provides three standard lifetimes: <strong>Transient</strong>, <strong>Scoped</strong>, and <strong>Singleton</strong>.</p><div class="definition-pair"><article><span>Creation</span><div><strong>When is an instance made?</strong><p>On every resolution, once per scope, or once for the application.</p></div></article><article><span>Sharing</span><div><strong>Who receives the same instance?</strong><p>One injection point, one request scope, or every consumer globally.</p></div></article></div>`
+  },
+  {
+    kicker: "OOP / Dependency Injection / Transient",
+    title: "Transient — AddTransient",
+    lead: "A new instance is created every time the service is requested from the DI container.",
+    content: `<p>If three components in the same HTTP request ask for a transient service, the container creates three separate instances.</p><section class="takeaway"><span>Best for</span><p>Lightweight, stateless services with short operations.</p></section><div class="code-section"><div class="code-label good"><span>T</span><div><strong>Registration and usage</strong><small>A fresh instance per resolution</small></div></div><pre><span class="language">C#</span><code>// Registration
+builder.Services.AddTransient&lt;ITokenGenerator, TokenGenerator&gt;();
+
+public class OrderService
+{
+    private readonly ITokenGenerator _tokenGen;
+
+    public OrderService(ITokenGenerator tokenGen)
+    {
+        _tokenGen = tokenGen;
+    }
+
+    public void ProcessOrder()
+    {
+        var id = _tokenGen.GenerateGuid();
+    }
+}</code></pre></div>`
+  },
+  {
+    kicker: "OOP / Dependency Injection / Scoped",
+    title: "Scoped — AddScoped",
+    lead: "A single instance is created once per request or explicitly created scope.",
+    content: `<p>In ASP.NET Core, a scope normally corresponds to one incoming HTTP request. Every component requesting the service during that request receives the same instance. It is disposed when the request ends.</p><section class="takeaway"><span>Best for</span><p>State maintained during one operation or request, such as database contexts and unit-of-work handlers.</p></section><div class="code-section"><div class="code-label good"><span>S</span><div><strong>Registration and usage</strong><small>One shared instance per request</small></div></div><pre><span class="language">C#</span><code>// Registration
+builder.Services.AddScoped&lt;IOrderRepository, OrderRepository&gt;();
+
+public class CheckoutController : ControllerBase
+{
+    private readonly IOrderRepository _repo;
+
+    public CheckoutController(IOrderRepository repo)
+    {
+        _repo = repo;
+    }
+
+    [HttpPost]
+    public async Task&lt;IActionResult&gt; Checkout(OrderDto dto)
+    {
+        await _repo.AddAsync(dto);
+        await _repo.SaveChangesAsync();
+        return Ok();
+    }
+}</code></pre></div>`
+  },
+  {
+    kicker: "OOP / Dependency Injection / Singleton",
+    title: "Singleton — AddSingleton",
+    lead: "A single instance remains alive for the entire application process.",
+    content: `<p>The instance is created the first time it is requested, or supplied during registration. Every request and component shares it until application shutdown.</p><section class="takeaway"><span>Best for</span><p>Expensive setup resources, thread-safe memory caches, and carefully managed application-wide state.</p></section><div class="code-section"><div class="code-label good"><span>1</span><div><strong>Registration and usage</strong><small>One global shared instance</small></div></div><pre><span class="language">C#</span><code>// Registration
+builder.Services.AddSingleton&lt;IMemoryCacheManager, MemoryCacheManager&gt;();
+
+public class ProductCatalogService
+{
+    private readonly IMemoryCacheManager _cache;
+
+    public ProductCatalogService(IMemoryCacheManager cache)
+    {
+        _cache = cache;
+    }
+
+    public List&lt;Product&gt; GetFeaturedProducts()
+    {
+        return _cache.GetOrSet(
+            "featured_products",
+            () =&gt; FetchFromDatabase());
+    }
+}</code></pre></div>`
+  },
+  {
+    kicker: "OOP / Dependency Injection / Service Lifetimes",
+    title: "Lifecycle summary",
+    lead: "Match the lifetime to the service's ownership, sharing, and disposal boundary.",
+    content: `<div class="table-wrap"><table><thead><tr><th>Lifetime</th><th>Creation point</th><th>Disposal point</th><th>Instance scope</th></tr></thead><tbody><tr><td><strong>Transient</strong></td><td>Every time requested</td><td>When its owning scope is disposed</td><td>Unique per resolution</td></tr><tr><td><strong>Scoped</strong></td><td>Once per request or scope</td><td>End of request or scope</td><td>Shared within the same scope</td></tr><tr><td><strong>Singleton</strong></td><td>Once, on first request or registration</td><td>Application shutdown</td><td>Shared across the application</td></tr></tbody></table></div><section class="takeaway"><span>Rule of thumb</span><p>Use transient for independent stateless work, scoped for request-bound state, and singleton only when the implementation is safe to share concurrently across the entire application.</p></section>`
+  }
+];
+
 book.chapters = [
   {
     number: "01",
@@ -379,6 +465,13 @@ book.chapters = [
           { number: "L", title: "Liskov Substitution", pages: lspPages },
           { number: "I", title: "Interface Segregation", pages: ispPages },
           { number: "D", title: "Dependency Inversion", pages: dipPages }
+        ]
+      },
+      {
+        number: "02",
+        title: "Dependency Injection",
+        sections: [
+          { number: "DI", title: "Service Lifetimes", pages: diLifecyclePages }
         ]
       }
     ]
@@ -399,6 +492,20 @@ const pages = book.chapters.flatMap((chapter, chapterIndex) =>
   )
 );
 let current = Math.min(Number(localStorage.getItem("folio-page") || 0), pages.length - 1);
+const defaultExpandedGroups = book.chapters.flatMap((chapter, ci) => [
+  `chapter-${ci}`,
+  ...chapter.topics.flatMap((topic, ti) => [
+    `topic-${ci}-${ti}`,
+    ...topic.sections.map((section, si) => `section-${ci}-${ti}-${si}`)
+  ])
+]);
+let expandedGroups;
+try {
+  const savedGroups = JSON.parse(localStorage.getItem("folio-expanded-groups"));
+  expandedGroups = new Set(Array.isArray(savedGroups) ? savedGroups : defaultExpandedGroups);
+} catch {
+  expandedGroups = new Set(defaultExpandedGroups);
+}
 let theme = localStorage.getItem("folio-theme") || "paper";
 let readerSize = Math.max(14, Math.min(22, Number(localStorage.getItem("folio-font-size") || 16)));
 let pageSoundEnabled = localStorage.getItem("folio-page-sound") !== "0";
@@ -460,24 +567,38 @@ function setPage(index) {
 function renderContents() {
   document.querySelector("#contents").innerHTML = book.chapters.map((chapter, ci) =>
     `<section class="chapter-group">
-      <button class="chapter-title" data-page="${pages.findIndex(p => p.chapterIndex === ci)}"><span>${chapter.number}</span>${chapter.title}</button>
-      ${chapter.topics.map((topic, ti) =>
-        `<div class="topic-group">
-          <button class="topic-title" data-page="${pages.findIndex(p => p.chapterIndex === ci && p.topicIndex === ti)}"><span>${topic.number}</span>${topic.title}</button>
+      <button class="chapter-title group-toggle" data-toggle="chapter-${ci}" aria-expanded="${expandedGroups.has(`chapter-${ci}`)}" aria-controls="chapter-${ci}-content"><span>${chapter.number}</span>${chapter.title}<i aria-hidden="true"></i></button>
+      <div id="chapter-${ci}-content" class="group-children" ${expandedGroups.has(`chapter-${ci}`) ? "" : "hidden"}>
+      ${chapter.topics.map((topic, ti) => {
+        const topicKey = `topic-${ci}-${ti}`;
+        return `<div class="topic-group">
+          <button class="topic-title group-toggle" data-toggle="${topicKey}" aria-expanded="${expandedGroups.has(topicKey)}" aria-controls="${topicKey}-content"><span>${topic.number}</span>${topic.title}<i aria-hidden="true"></i></button>
+          <div id="${topicKey}-content" class="group-children" ${expandedGroups.has(topicKey) ? "" : "hidden"}>
           ${topic.sections.map((section, si) => {
-            const sectionPage = pages.findIndex(p => p.chapterIndex === ci && p.topicIndex === ti && p.sectionIndex === si);
+            const sectionKey = `section-${ci}-${ti}-${si}`;
             return `<div class="section-group">
-              <button class="section-title ${pages[current].sectionIndex === si && pages[current].topicIndex === ti && pages[current].chapterIndex === ci ? "active" : ""}" data-page="${sectionPage}"><span>${section.number}</span>${section.title}</button>
+              <button class="section-title group-toggle ${pages[current].sectionIndex === si && pages[current].topicIndex === ti && pages[current].chapterIndex === ci ? "active" : ""}" data-toggle="${sectionKey}" aria-expanded="${expandedGroups.has(sectionKey)}" aria-controls="${sectionKey}-content"><span>${section.number}</span>${section.title}<i aria-hidden="true"></i></button>
+              <div id="${sectionKey}-content" class="group-children" ${expandedGroups.has(sectionKey) ? "" : "hidden"}>
               ${section.pages.map((page, pi) => {
                 const i = pages.findIndex(p => p.chapterIndex === ci && p.topicIndex === ti && p.sectionIndex === si && p.pageIndex === pi);
                 return `<button class="page-link ${i === current ? "active" : ""}" data-page="${i}"><span>${String(pi + 1).padStart(2,"0")}</span>${page.title}</button>`;
               }).join("")}
+              </div>
             </div>`;
           }).join("")}
+          </div>
         </div>`
-      ).join("")}
+      }).join("")}
+      </div>
     </section>`
   ).join("");
+  document.querySelectorAll("[data-toggle]").forEach(button => button.addEventListener("click", () => {
+    const key = button.dataset.toggle;
+    if (expandedGroups.has(key)) expandedGroups.delete(key);
+    else expandedGroups.add(key);
+    localStorage.setItem("folio-expanded-groups", JSON.stringify([...expandedGroups]));
+    renderContents();
+  }));
   document.querySelectorAll("[data-page]").forEach(button => button.addEventListener("click", () => { setPage(Number(button.dataset.page)); closeMenu(); }));
 }
 function render() {
