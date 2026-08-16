@@ -922,6 +922,11 @@ book.chapters = [
     number: "04",
     title: "Documentation",
     topics: []
+  },
+  {
+    number: "05",
+    title: "Azure",
+    topics: []
   }
 ];
 
