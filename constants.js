@@ -1138,6 +1138,21 @@ public class ProductTests
 {
     // Runs sequentially with UserTests
 }</code></pre>`
+  },
+  {
+    kicker: "Testing / Unit Testing / xUnit / Running Tests",
+    title: "Running xUnit Tests",
+    lead: "To run these xUnit tests, you have three primary options: using the .NET CLI, Visual Studio, or VS Code.",
+    content: `<div class="code-section"><div class="code-label good"><span>1</span><div><strong>Using .NET CLI</strong><small>Terminal or Command Prompt</small></div></div><p>Navigate to the directory containing your test project file (<code>.csproj</code>) and execute:</p><pre><span class="language">Bash</span><code>dotnet test</code></pre><section class="subsection"><h3>To run a specific test class or method:</h3><pre><span class="language">Bash</span><code># Run only the ShoppingCartTests class
+dotnet test --filter "FullyQualifiedName~ShoppingCartTests"
+
+# Run a specific test method
+dotnet test --filter "FullyQualifiedName~AddItem_ValidPrice_UpdatesTotal"</code></pre></section></div><div class="code-section"><div class="code-label good"><span>2</span><div><strong>Using Visual Studio</strong></div></div><ol class="principle-list"><li><span>01</span><p>Open the Test Explorer window (Test &gt; Test Explorer or press <code>Ctrl+E, T</code>).</p></li><li><span>02</span><p>Build your solution (<code>Ctrl+Shift+B</code>) so Visual Studio discovers the tests.</p></li><li><span>03</span><p>Click Run All Tests (green double-play icon) or right-click <code>ShoppingCartTests</code> and select Run.</p></li></ol></div><div class="code-section"><div class="code-label good"><span>3</span><div><strong>Using Visual Studio Code</strong></div></div><ol class="principle-list"><li><span>01</span><p>Install the C# Dev Kit extension (or the standalone .NET Core Test Explorer extension).</p></li><li><span>02</span><p>Click the Testing icon (beaker symbol) in the left activity bar.</p></li><li><span>03</span><p>Hover over <code>ShoppingCartTests</code> or an individual method and click the Play button.</p></li></ol><p>Alternatively, click the inline Run Test link that appears directly above <code>[Fact]</code> in the code editor.</p></div><section class="subsection"><h3>Prerequisites Required in Your .csproj</h3><p>Ensure your test project includes the necessary NuGet packages:</p><pre><span class="language">XML</span><code>&lt;ItemGroup&gt;
+  &lt;PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.10.0" /&gt;
+  &lt;PackageReference Include="xunit" Version="2.8.0" /&gt;
+  &lt;PackageReference Include="xunit.runner.visualstudio" Version="2.8.0" /&gt;
+  &lt;PackageReference Include="FluentAssertions" Version="6.12.0" /&gt;
+&lt;/ItemGroup&gt;</code></pre></section><section class="subsection"><h3>Where would you like to go next?</h3><ul><li>Configure code coverage reporting with <code>dotnet test</code></li><li>Learn test debugging techniques in VS Code and Visual Studio</li></ul></section>`
   }
 ];
 
@@ -1404,7 +1419,7 @@ const compactUnitTestingPages = [
 
 const compactXunitPages = [
   mergeTestPages([xunitPages[0], xunitPages[1]]),
-  mergeTestPages([xunitPages[2], xunitPages[3], xunitPages[4]])
+  mergeTestPages([xunitPages[2], xunitPages[3], xunitPages[4], xunitPages[5]])
 ];
 
 const compactMockingDataPages = [
