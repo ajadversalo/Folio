@@ -1856,6 +1856,40 @@ host.Run();</code></pre></section>`
   }
 ];
 
+const csharpNameofPages = [
+  {
+    kicker: "C# / Fundamentals / nameof",
+    title: "Is nameof Commonly Used Outside of Tests?",
+    lead: "Yes, nameof is widely used throughout production C# code, not just in unit tests.",
+    content: `<p>Introduced in C# 6, its core purpose is to replace fragile hardcoded strings with compile-time checked identifiers.</p><section class="subsection"><h3>Common Real-World Use Cases</h3><div class="code-section"><div class="code-label good"><span>1</span><div><strong>Guard Clauses &amp; Exception Throwing</strong></div></div><p>Passing parameter names to exceptions like <code>ArgumentNullException</code> or <code>ArgumentOutOfRangeException</code>:</p><pre><span class="language">C#</span><code>public void ProcessOrder(Order order)
+{
+    // If order is null, ParamName becomes "order" automatically
+    _ = order ?? throw new ArgumentNullException(nameof(order));
+}</code></pre><p>If you rename the parameter <code>order</code> to <code>customerOrder</code>, your IDE updates the exception parameter name automatically.</p></div><div class="code-section"><div class="code-label good"><span>2</span><div><strong>ASP.NET Core MVC &amp; API Routing / Action Generation</strong></div></div><p>Generating URLs or redirecting to controller actions without hardcoding string names:</p><pre><span class="language">C#</span><code>[HttpPost]
+public IActionResult Create(ProductDto dto)
+{
+    var product = _service.Create(dto);
+
+    // Points to the GetById action safely
+    return CreatedAtAction(nameof(GetById), new { id = product.Id }, product);
+}</code></pre></div><div class="code-section"><div class="code-label good"><span>3</span><div><strong>INotifyPropertyChanged</strong><small>WPF / MAUI / Desktop Apps</small></div></div><p>Notifying the UI layer when a property value changes in data binding scenarios:</p><pre><span class="language">C#</span><code>private string _username;
+public string Username
+{
+    get =&gt; _username;
+    set
+    {
+        _username = value;
+        OnPropertyChanged(nameof(Username)); // Emits "Username"
+    }
+}</code></pre></div><div class="code-section"><div class="code-label good"><span>4</span><div><strong>Logging and Telemetry</strong></div></div><p>Including class or method names in structured log events:</p><pre><span class="language">C#</span><code>_logger.LogInformation("Processing started in {Service}", nameof(OrderProcessor));</code></pre></div><div class="code-section"><div class="code-label good"><span>5</span><div><strong>Reflection &amp; Attributes</strong></div></div><p>Referencing properties or methods when setting up metadata, serialization tags, or Entity Framework configurations:</p><pre><span class="language">C#</span><code>[Index(nameof(Email), IsUnique = true)]
+public class User
+{
+    public string Email { get; set; }
+}</code></pre></div></section><section class="subsection"><h3>Why It's Preferred</h3><div class="concept-list"><section><span>01</span><div><h3>Compile-Time Safety</h3><p>Misspelling an identifier causes a build error rather than a runtime bug.</p></div></section><section><span>02</span><div><h3>Refactoring Friendly</h3><p>Renaming variables, fields, properties, or methods across a project automatically updates all references.</p></div></section><section><span>03</span><div><h3>Zero Runtime Overhead</h3><p>The compiler evaluates <code>nameof(...)</code> into a string literal at compile time.</p></div></section></div></section><section class="subsection"><h3>What will this return?</h3><pre><span class="language">C#</span><code>throw new ArgumentNullException(nameof(order));</code></pre><p>It returns an <code>ArgumentNullException</code> exception object containing the string <code>"order"</code> as its <code>ParamName</code> property.</p><p>Strictly speaking, the <code>nameof(order)</code> expression itself evaluates to the string literal <code>"order"</code>.</p><section class="subsection"><h3>What the Instantiated Exception Looks Like</h3><p>When passed to <code>throw</code>, C# initializes the exception as:</p><pre><span class="language">C#</span><code>// Equivalent to:
+throw new ArgumentNullException("order");</code></pre><p>If left uncaught, it produces the following exception message output:</p><pre><span class="language">Plaintext</span><code>System.ArgumentNullException: Value cannot be null. (Parameter 'order')</code></pre></section><section class="subsection"><h3>Property Breakdown</h3><p>Inspecting the caught exception yields these values:</p><ul><li><code>ex.ParamName</code>: <code>"order"</code></li><li><code>ex.Message</code>: <code>"Value cannot be null. (Parameter 'order')"</code></li></ul></section></section>`
+  }
+];
+
 book.chapters = [
   {
     number: "01",
@@ -1941,7 +1975,8 @@ book.chapters = [
           { number: "04", title: "Abstract Classes & Interfaces", pages: csharpAbstractionsPages },
           { number: "05", title: "Memory Management", pages: csharpMemoryPages },
           { number: "06", title: "Parameter Passing", pages: csharpParameterPassingPages },
-          { number: "07", title: "Services", pages: csharpServicesPages }
+          { number: "07", title: "Services", pages: csharpServicesPages },
+          { number: "08", title: "nameof", pages: csharpNameofPages }
         ]
       }
     ]
