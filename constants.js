@@ -868,6 +868,460 @@ public class LifetimeDemoController : ControllerBase
   }
 ];
 
+const unitTestingPages = [
+  {
+    kicker: "Testing / Unit Testing / Foundation",
+    title: "Unit Testing",
+    lead: "Unit testing is the foundation.",
+    content: `<p>It tests the smallest isolated unit of code—usually a single method or class—in complete isolation from databases, file systems, or network APIs.</p><section class="subsection"><h3>Core Concepts</h3><div class="concept-list"><section><span>SUT</span><div><h3>System Under Test (SUT)</h3><p>The specific class or component being tested.</p></div></section><section><span>D</span><div><h3>Dependencies &amp; Mocks</h3><p>External components (like repositories or HTTP clients) that the SUT relies on. These are replaced with controlled fake implementations (mocks or stubs).</p></div></section><section><span>AAA</span><div><h3>AAA Pattern (Arrange, Act, Assert)</h3><p>Standard structural pattern for every test case.</p></div></section></div></section>`
+  },
+  {
+    kicker: "Testing / Unit Testing / First Test",
+    title: "Building Your First Unit Test",
+    lead: "Given a simple domain class:",
+    content: `<pre><span class="language">C#</span><code>public class ShoppingCart
+{
+    private readonly List&lt;decimal&gt; _items = new();
+
+    public decimal Total =&gt; _items.Sum();
+
+    public void AddItem(decimal price)
+    {
+        if (price &lt;= 0)
+            throw new ArgumentOutOfRangeException(nameof(price), "Price must be positive.");
+
+        _items.Add(price);
+    }
+}</code></pre><section class="subsection"><h3>An xUnit test suite using FluentAssertions</h3><pre><span class="language">C#</span><code>using FluentAssertions;
+using Xunit;
+
+public class ShoppingCartTests
+{
+    [Fact]
+    public void AddItem_ValidPrice_UpdatesTotal()
+    {
+        // Arrange
+        var cart = new ShoppingCart();
+
+        // Act
+        cart.AddItem(19.99m);
+
+        // Assert
+        cart.Total.Should().Be(19.99m);
+    }
+
+    [Fact]
+    public void AddItem_ZeroOrNegativePrice_ThrowsArgumentOutOfRangeException()
+    {
+        // Arrange
+        var cart = new ShoppingCart();
+
+        // Act
+        Action act = () =&gt; cart.AddItem(-5.00m);
+
+        // Assert
+        act.Should().Throw&lt;ArgumentOutOfRangeException&gt;();
+    }
+}</code></pre></section>`
+  },
+  {
+    kicker: "Testing / Unit Testing / Theory",
+    title: "Parameterized Tests ([Theory])",
+    lead: "When testing multiple inputs for the same logic, avoid duplicating test methods.",
+    content: `<p>Use <code>[Theory]</code> with <code>[InlineData]</code>:</p><pre><span class="language">C#</span><code>public class DiscountCalculator
+{
+    public decimal Calculate(decimal amount, bool isVip)
+    {
+        if (amount &gt;= 100m &amp;&amp; isVip) return amount * 0.20m;
+        if (amount &gt;= 100m) return amount * 0.10m;
+        return 0m;
+    }
+}
+
+public class DiscountCalculatorTests
+{
+    [Theory]
+    [InlineData(100, true, 20)]   // VIP spent $100 -&gt; $20 off
+    [InlineData(100, false, 10)]  // Regular spent $100 -&gt; $10 off
+    [InlineData(50, true, 0)]     // Under threshold -&gt; $0 off
+    public void Calculate_EvaluatesDiscountCorrectly(decimal amount, bool isVip, decimal expectedDiscount)
+    {
+        var calculator = new DiscountCalculator();
+
+        var result = calculator.Calculate(amount, isVip);
+
+        result.Should().Be(expectedDiscount);
+    }
+}</code></pre>`
+  },
+  {
+    kicker: "Testing / Unit Testing / Lifecycle",
+    title: "Test Anatomy & xUnit Lifecycle",
+    lead: "Unlike older frameworks that use explicit [SetUp] and [TearDown] attributes, xUnit uses standard C# language constructs:",
+    content: `<div class="concept-list"><section><span>01</span><div><h3>Setup</h3><p>Executed in the parameterless constructor of the test class before every single <code>[Fact]</code> or <code>[Theory]</code>.</p></div></section><section><span>02</span><div><h3>Teardown</h3><p>Executed in <code>Dispose()</code> (by implementing <code>IDisposable</code>) after every single test.</p></div></section><section><span>03</span><div><h3>Class Fixtures</h3><p>Implementing <code>IClassFixture&lt;T&gt;</code> creates state shared across all tests in a class (useful for expensive setups).</p></div></section></div>`
+  }
+];
+
+const xunitPages = [
+  {
+    kicker: "Testing / Unit Testing / xUnit / Attributes",
+    title: "Test Attributes: [Fact] vs. [Theory]",
+    lead: "xUnit is the dominant testing framework in modern .NET.",
+    content: `<p>Unlike older frameworks that rely on heavily decorated setup/teardown methods or stateful test runners, xUnit treats each test class as a plain C# object created fresh for every single test.</p><p>xUnit fundamentally divides tests into two types:</p><div class="concept-list"><section><span>F</span><div><h3>[Fact]</h3><p>A single test that requires no parameters and tests a invariant condition.</p></div></section><section><span>T</span><div><h3>[Theory]</h3><p>A suite of tests that executes the exact same code block against different datasets.</p></div></section></div><pre><span class="language">C#</span><code>public class Calculator
+{
+    public bool IsEven(int number) =&gt; number % 2 == 0;
+}
+
+public class CalculatorTests
+{
+    [Fact]
+    public void IsEven_Two_ReturnsTrue()
+    {
+        var calc = new Calculator();
+        Assert.True(calc.IsEven(2));
+    }
+
+    [Theory]
+    [InlineData(2, true)]
+    [InlineData(3, false)]
+    [InlineData(0, true)]
+    [InlineData(-1, false)]
+    public void IsEven_EvaluatesNumbersCorrectly(int number, bool expected)
+    {
+        var calc = new Calculator();
+        Assert.Equal(expected, calc.IsEven(number));
+    }
+}</code></pre>`
+  },
+  {
+    kicker: "Testing / Unit Testing / xUnit / Theory Data",
+    title: "Passing Complex Data to [Theory]",
+    lead: "When test data cannot be represented in standard attributes (like complex objects, collections, or dynamic data), use [MemberData] or [ClassData].",
+    content: `<div class="code-section"><div class="code-label good"><span>A</span><div><strong>[MemberData]</strong><small>Static Property or Method</small></div></div><pre><span class="language">C#</span><code>public class OrderProcessorTests
+{
+    public static IEnumerable&lt;object[]&gt; GetOrderTestData()
+    {
+        yield return new object[] { new Order { Amount = 100 }, 10.0m };
+        yield return new object[] { new Order { Amount = 0 }, 0.0m };
+    }
+
+    [Theory]
+    [MemberData(nameof(GetOrderTestData))]
+    public void CalculateDiscount_ReturnsExpectedAmount(Order order, decimal expectedDiscount)
+    {
+        var processor = new OrderProcessor();
+        var discount = processor.CalculateDiscount(order);
+        Assert.Equal(expectedDiscount, discount);
+    }
+}</code></pre></div><div class="code-section"><div class="code-label good"><span>B</span><div><strong>[ClassData]</strong><small>Dedicated Data Class</small></div></div><p>Separates test data completely from the test class:</p><pre><span class="language">C#</span><code>public class OrderTestData : IEnumerable&lt;object[]&gt;
+{
+    public IEnumerator&lt;object[]&gt; GetEnumerator()
+    {
+        yield return new object[] { new Order { Amount = 50 }, 0m };
+        yield return new object[] { new Order { Amount = 200 }, 20m };
+    }
+
+    IEnumerator IEnumerable.GetEnumerator() =&gt; GetEnumerator();
+}
+
+public class OrderProcessorClassDataTests
+{
+    [Theory]
+    [ClassData(typeof(OrderTestData))]
+    public void CalculateDiscount_ClassData_ReturnsExpectedAmount(Order order, decimal expectedDiscount)
+    {
+        var processor = new OrderProcessor();
+        Assert.Equal(expectedDiscount, processor.CalculateDiscount(order));
+    }
+}</code></pre></div>`
+  },
+  {
+    kicker: "Testing / Unit Testing / xUnit / Lifecycle",
+    title: "Test Lifecycle & State Management",
+    lead: "xUnit creates a new instance of the test class for every [Fact] or [Theory] method execution.",
+    content: `<p>This guarantees clean state isolation and prevents tests from leaking state to each other.</p><div class="table-wrap"><table><thead><tr><th>Lifecycle Phase</th><th>How It Is Handled in xUnit</th></tr></thead><tbody><tr><td>Per-Test Setup</td><td>Class Parameterless Constructor</td></tr><tr><td>Per-Test Teardown</td><td>Implement <code>IDisposable</code> (<code>Dispose()</code>) or <code>IAsyncLifetime</code></td></tr><tr><td>Shared Class Context</td><td>Implement <code>IClassFixture&lt;TContext&gt;</code></td></tr><tr><td>Shared Cross-Class Context</td><td>Use <code>[Collection]</code> and <code>ICollectionFixture&lt;TContext&gt;</code></td></tr></tbody></table></div><div class="code-section"><div class="code-label good"><span>A</span><div><strong>Per-Test Setup &amp; Teardown</strong></div></div><pre><span class="language">C#</span><code>public class DatabaseTests : IDisposable
+{
+    private readonly TempDatabase _db;
+
+    // Runs BEFORE each test method
+    public DatabaseTests()
+    {
+        _db = new TempDatabase();
+        _db.Initialize();
+    }
+
+    [Fact]
+    public void Insert_ValidRecord_SavesToDb()
+    {
+        _db.Insert("key", "value");
+        Assert.Equal("value", _db.Get("key"));
+    }
+
+    // Runs AFTER each test method completes
+    public void Dispose()
+    {
+        _db.CleanUp();
+    }
+}</code></pre></div><div class="code-section"><div class="code-label good"><span>B</span><div><strong>Shared Context Across Tests (IClassFixture&lt;T&gt;)</strong></div></div><p>When setup is expensive (e.g., seeding a database or loading heavy configurations), initialize it once and share it across all tests in a class:</p><pre><span class="language">C#</span><code>public class DatabaseFixture : IDisposable
+{
+    public SqlConnection Connection { get; private set; }
+
+    public DatabaseFixture()
+    {
+        Connection = new SqlConnection("Server=localhost;Database=TestDb;...");
+        Connection.Open();
+    }
+
+    public void Dispose()
+    {
+        Connection.Dispose();
+    }
+}
+
+public class CustomerRepositoryTests : IClassFixture&lt;DatabaseFixture&gt;
+{
+    private readonly DatabaseFixture _fixture;
+
+    // xUnit automatically injects the single DatabaseFixture instance
+    public CustomerRepositoryTests(DatabaseFixture fixture)
+    {
+        _fixture = fixture;
+    }
+
+    [Fact]
+    public void GetCustomer_ReturnsData()
+    {
+        var repo = new CustomerRepository(_fixture.Connection);
+        // Test logic using the shared connection...
+    }
+}</code></pre></div>`
+  },
+  {
+    kicker: "Testing / Unit Testing / xUnit / Async Lifecycle",
+    title: "Async Lifetime Support (IAsyncLifetime)",
+    lead: "When setup or teardown involves async operations (like database connections or HTTP calls), use IAsyncLifetime instead of constructor/Dispose:",
+    content: `<pre><span class="language">C#</span><code>public class AsyncServiceTests : IAsyncLifetime
+{
+    private ServiceClient _client;
+
+    public async Task InitializeAsync()
+    {
+        _client = new ServiceClient();
+        await _client.ConnectAsync();
+    }
+
+    [Fact]
+    public async Task FetchData_ReturnsResponse()
+    {
+        var data = await _client.GetDataAsync();
+        Assert.NotNull(data);
+    }
+
+    public async Task DisposeAsync()
+    {
+        await _client.DisconnectAsync();
+    }
+}</code></pre>`
+  },
+  {
+    kicker: "Testing / Unit Testing / xUnit / Collections",
+    title: "Parallel Execution & Test Collections",
+    lead: "By default, xUnit runs test classes in parallel against each other (each class runs in its own thread), while tests within the same class run sequentially.",
+    content: `<p>To force multiple test classes to run sequentially because they share a global resource (like a database or static variable), place them in the same <code>[Collection]</code>:</p><pre><span class="language">C#</span><code>[Collection("Database Collection")]
+public class UserTests
+{
+    // Runs sequentially with ProductTests
+}
+
+[Collection("Database Collection")]
+public class ProductTests
+{
+    // Runs sequentially with UserTests
+}</code></pre>`
+  }
+];
+
+const xunitMockingDataPages = [
+  {
+    kicker: "Testing / Unit Testing / xUnit / Mocking & Data",
+    title: "Does xUnit Have Mocking Data Capability?",
+    lead: "No, xUnit does not have built-in mocking capabilities.",
+    content: `<p>xUnit is strictly a test runner and assertion framework. Its role is to discover your test methods (<code>[Fact]</code>, <code>[Theory]</code>), manage their lifecycle (constructor, <code>Dispose</code>), run them, evaluate pass/fail criteria (<code>Assert</code>), and report the results.</p><p>It does not contain mechanisms to generate dynamic mock interfaces, intercept method calls, or auto-generate mock datasets.</p><section class="subsection"><h3>What xUnit DOES Provide for Data Handling</h3><p>While xUnit cannot mock dependencies, it does have built-in capabilities to feed hardcoded or generated test data into parameterized tests:</p><div class="concept-list"><section><span>I</span><div><h3>[InlineData]</h3><p>For passing primitive parameters directly.</p></div></section><section><span>M</span><div><h3>[MemberData]</h3><p>For pulling static lists, properties, or methods into your test.</p></div></section><section><span>C</span><div><h3>[ClassData]</h3><p>For creating reusable data-provider classes that yield test arguments.</p></div></section></div></section>`
+  },
+  {
+    kicker: "Testing / Unit Testing / xUnit / Companion Libraries",
+    title: "How Mocking and Fake Data Work alongside xUnit",
+    lead: "To get complete test coverage, xUnit is paired with dedicated companion libraries from the .NET ecosystem:",
+    content: `<div class="table-wrap"><table><thead><tr><th>Test Framework</th><th>Mocking Engine</th><th>Fake Data Gen</th></tr></thead><tbody><tr><td><strong>xUnit</strong><small>Runs the test &amp; lifecycle</small></td><td><strong>NSubstitute</strong><small>Mocks services/DB interfaces</small></td><td><strong>Bogus</strong><small>Generates realistic objects &amp; models</small></td></tr></tbody></table></div>`
+  },
+  {
+    kicker: "Testing / Unit Testing / xUnit / Dependency Mocking",
+    title: "Mocking Dependencies",
+    lead: "Services, Repositories, HTTP",
+    content: `<p>To fake the behavior of interfaces or abstract classes, pair xUnit with a mocking library like NSubstitute or Moq:</p><pre><span class="language">C#</span><code>// xUnit manages the test execution
+[Fact]
+public async Task GetUser_ReturnsUserFromRepository()
+{
+    // NSubstitute handles the mocking capability
+    var repoMock = Substitute.For&lt;IUserRepository&gt;();
+    repoMock.GetByIdAsync(1).Returns(Task.FromResult(new User { Id = 1, Name = "Alice" }));
+
+    var service = new UserService(repoMock);
+    var user = await service.GetUserAsync(1);
+
+    Assert.Equal("Alice", user.Name);
+}</code></pre>`
+  },
+  {
+    kicker: "Testing / Unit Testing / xUnit / Fake Data",
+    title: "Generating Fake Object Data (Faker/Fixtures)",
+    lead: "To quickly generate populated models with realistic dummy data (names, emails, dates) without writing manual fixtures, pair xUnit with Bogus or AutoFixture:",
+    content: `<pre><span class="language">C#</span><code>// Using Bogus to generate fake data inside an xUnit test
+[Fact]
+public void ProcessUser_WithValidGeneratedData_Succeeds()
+{
+    // Bogus creates a fake data generator
+    var userFaker = new Faker&lt;User&gt;()
+        .RuleFor(u =&gt; u.Id, f =&gt; f.IndexFaker)
+        .RuleFor(u =&gt; u.Name, f =&gt; f.Name.FullName())
+        .RuleFor(u =&gt; u.Email, f =&gt; f.Internet.Email());
+
+    User fakeUser = userFaker.Generate(); // Populates realistic object
+
+    var processor = new UserProcessor();
+    var result = processor.Validate(fakeUser);
+
+    Assert.True(result.IsValid);
+}</code></pre><section class="subsection"><h3>Common Ecosystem Combinations</h3><div class="table-wrap"><table><thead><tr><th>Task</th><th>xUnit's Role</th><th>Companion Library</th></tr></thead><tbody><tr><td>Execution &amp; Assertions</td><td>Test discovery, runner, basic Assert</td><td>Built-in</td></tr><tr><td>Interface/Service Mocking</td><td>None</td><td>NSubstitute or Moq</td></tr><tr><td>Realistic Data Generation</td><td>None</td><td>Bogus</td></tr><tr><td>Auto-Mocking Object Trees</td><td>None</td><td>AutoFixture</td></tr><tr><td>Fluent Assertions</td><td>Basic Assert class</td><td>FluentAssertions or Shouldly</td></tr></tbody></table></div></section>`
+  }
+];
+
+const moqPages = [
+  {
+    kicker: "Testing / Unit Testing / Moq / Core Concepts",
+    title: "The Mock<T> Container",
+    lead: "Moq remains one of the most widely used mocking frameworks in .NET history.",
+    content: `<p>It uses C# expression trees (<code>Expression&lt;Func&lt;T, TResult&gt;&gt;</code>) to define expectations, verify calls, and control mock behavior at runtime.</p><p>In Moq, you instantiate a wrapper container called <code>Mock&lt;T&gt;</code> around the interface or abstract class you want to fake. When injecting the fake dependency into your class under test, you pass <code>mock.Object</code>.</p><pre><span class="language">C#</span><code>public interface ICustomerService
+{
+    Customer? GetCustomer(int id);
+    bool SaveCustomer(Customer customer);
+}
+
+// 1. Create the mock container
+var mockService = new Mock&lt;ICustomerService&gt;();
+
+// 2. Pass the underlying fake instance to your SUT
+var processor = new OrderProcessor(mockService.Object);</code></pre>`
+  },
+  {
+    kicker: "Testing / Unit Testing / Moq / Setup",
+    title: "Setting Up Method Returns (Setup & Returns)",
+    lead: "You configure how the mock responds using .Setup() and .Returns().",
+    content: `<div class="code-section"><div class="code-label good"><span>1</span><div><strong>Exact Argument Match</strong></div></div><pre><span class="language">C#</span><code>var expectedCustomer = new Customer { Id = 42, Name = "Alice" };
+
+// Return expectedCustomer when GetCustomer(42) is called
+mockService.Setup(s =&gt; s.GetCustomer(42))
+           .Returns(expectedCustomer);</code></pre></div><div class="code-section"><div class="code-label good"><span>2</span><div><strong>Argument Matchers</strong><small>It.IsAny&lt;T&gt;(), It.Is&lt;T&gt;()</small></div></div><pre><span class="language">C#</span><code>// Return null for any negative ID
+mockService.Setup(s =&gt; s.GetCustomer(It.Is&lt;int&gt;(id =&gt; id &lt; 0)))
+           .Returns((Customer?)null);
+
+// Return a generic customer for ANY positive ID
+mockService.Setup(s =&gt; s.GetCustomer(It.IsAny&lt;int&gt;()))
+           .Returns(new Customer { Name = "Default" });</code></pre></div>`
+  },
+  {
+    kicker: "Testing / Unit Testing / Moq / Async",
+    title: "Working with Async Methods (ReturnsAsync)",
+    lead: "When mocking Task<T> methods, Moq provides dedicated .ReturnsAsync() helpers so you don't need to manually wrap results in Task.FromResult.",
+    content: `<pre><span class="language">C#</span><code>public interface IPaymentGateway
+{
+    Task&lt;PaymentResult&gt; ProcessAsync(decimal amount);
+}
+
+var mockGateway = new Mock&lt;IPaymentGateway&gt;();
+
+// Configure async return
+mockGateway.Setup(g =&gt; g.ProcessAsync(It.IsAny&lt;decimal&gt;()))
+           .ReturnsAsync(new PaymentResult { IsSuccess = true });</code></pre><section class="subsection"><h3>To throw an exception from an async method:</h3><pre><span class="language">C#</span><code>mockGateway.Setup(g =&gt; g.ProcessAsync(It.IsAny&lt;decimal&gt;()))
+           .ThrowsAsync(new InvalidOperationException("Gateway down"));</code></pre></section>`
+  },
+  {
+    kicker: "Testing / Unit Testing / Moq / Verification",
+    title: "Verifying Invocation (Verify)",
+    lead: "Moq checks whether a method was called using .Verify() and the Times struct.",
+    content: `<pre><span class="language">C#</span><code>[Fact]
+public void Process_ValidCustomer_SavesToDatabase()
+{
+    var mockService = new Mock&lt;ICustomerService&gt;();
+    var processor = new OrderProcessor(mockService.Object);
+
+    processor.ProcessRegistration(new Customer { Id = 10, Name = "Bob" });
+
+    // Verify SaveCustomer was called exactly once with ANY Customer object
+    mockService.Verify(s =&gt; s.SaveCustomer(It.IsAny&lt;Customer&gt;()), Times.Once);
+
+    // Verify GetCustomer was NEVER called
+    mockService.Verify(s =&gt; s.GetCustomer(It.IsAny&lt;int&gt;()), Times.Never);
+}</code></pre>`
+  },
+  {
+    kicker: "Testing / Unit Testing / Moq / Behavior",
+    title: "Mock Behavior Modes: Loose vs. Strict",
+    lead: "Moq supports two distinct behavior modes when instantiating a mock:",
+    content: `<div class="concept-list"><section><span>L</span><div><h3>MockBehavior.Loose (Default)</h3><p>If a method is called on the mock that was not configured with <code>.Setup()</code>, it will return the default value for the return type (<code>null</code>, <code>0</code>, <code>false</code>, or empty array) without throwing an error.</p></div></section><section><span>S</span><div><h3>MockBehavior.Strict</h3><p>If an unconfigured method is called, Moq immediately throws a <code>MockException</code>. This enforces strict isolation, but can make tests brittle when internal method calls change.</p></div></section></div><pre><span class="language">C#</span><code>// Throws a MockException if ANY method is called that wasn't explicitly setup
+var strictMock = new Mock&lt;ICustomerService&gt;(MockBehavior.Strict);</code></pre>`
+  },
+  {
+    kicker: "Testing / Unit Testing / Moq / Properties",
+    title: "Properties & Out/Ref Parameters",
+    lead: "Setup Property Values (SetupProperty / SetupAllProperties):",
+    content: `<p>By default, properties on mocks do not retain state. To make a mock property act like a normal auto-property:</p><pre><span class="language">C#</span><code>var mockUser = new Mock&lt;IUser&gt;();
+
+// Enables tracking for a single property
+mockUser.SetupProperty(u =&gt; u.Name, "Initial Name");
+
+// Enables tracking for ALL properties on the interface
+mockUser.SetupAllProperties();</code></pre>`
+  },
+  {
+    kicker: "Testing / Unit Testing / Moq / Runtime Generation",
+    title: "What new Mock<T>() Creates",
+    lead: "When you create a Mock<ICustomerService>, you are doing two separate things at once:",
+    content: `<pre><span class="language">C#</span><code>var mockService = new Mock&lt;ICustomerService&gt;();</code></pre><ol class="principle-list"><li><span>01</span><p>Creating a controller/wrapper object (<code>mockService</code> of type <code>Mock&lt;ICustomerService&gt;</code>).</p></li><li><span>02</span><p>Instructing Moq to generate a fake implementation class in memory at runtime that implements <code>ICustomerService</code>.</p></li></ol><section class="subsection"><h3>How it Works Behind the Scenes</h3><p>Because <code>ICustomerService</code> is an interface, C# normally requires you to write a concrete class (e.g., <code>CustomerService : ICustomerService</code>) with actual code for every method.</p><p>Moq bypasses this using .NET reflection and dynamic code generation (via <code>System.Reflection.Emit</code>). When that line runs:</p><ol class="principle-list"><li><span>01</span><p>Moq creates a dynamic C# class on the fly behind the scenes that implements <code>ICustomerService</code>.</p></li><li><span>02</span><p>Every method in this fake class starts with default empty behavior. If a method returns <code>int</code>, it returns <code>0</code>. If it returns an object or interface, it returns <code>null</code>. If it returns <code>bool</code>, it returns <code>false</code>.</p></li><li><span>03</span><p>Moq stores that fake instance inside the <code>.Object</code> property of <code>mockService</code>.</p></li></ol></section>`
+  },
+  {
+    kicker: "Testing / Unit Testing / Moq / Wrapper and Object",
+    title: "The Distinction Between mockService and mockService.Object",
+    lead: "This distinction trips up many developers coming to Moq:",
+    content: `<div class="definition-pair"><article><span>Control</span><div><strong>mockService</strong><p>Type: <code>Mock&lt;ICustomerService&gt;</code></p><p>Used to CONTROL the fake. Call <code>.Setup()</code> to define return values. Call <code>.Verify()</code> to check if methods were called.</p></div></article><article><span>Fake</span><div><strong>mockService.Object</strong><p>Type: <code>ICustomerService</code></p><p>The actual dynamic fake instance. Pass THIS into your real application code.</p></div></article></div><p><code>mockService</code> is the remote control. You use it inside your test to configure setup rules (<code>mockService.Setup(...)</code>) or check execution counts (<code>mockService.Verify(...)</code>).</p><p><code>mockService.Object</code> is the actual device. It is the fake object that gets injected into your System Under Test (SUT).</p>`
+  },
+  {
+    kicker: "Testing / Unit Testing / Moq / Walkthrough",
+    title: "Step-by-Step Code Walkthrough",
+    lead: "Create, configure, inject, run, and verify the mock.",
+    content: `<pre><span class="language">C#</span><code>[Fact]
+public void ProcessOrder_CallsCustomerService()
+{
+    // STEP 1: Create the mock controller &amp; fake instance
+    var mockService = new Mock&lt;ICustomerService&gt;();
+
+    // STEP 2: Configure the controller (Remote Control)
+    // "When any code calls GetCustomer(5) on the fake object, return Alice"
+    mockService.Setup(x =&gt; x.GetCustomer(5))
+               .Returns(new Customer { Id = 5, Name = "Alice" });
+
+    // STEP 3: Inject the dynamic fake instance (.Object) into your real class
+    var processor = new OrderProcessor(mockService.Object);
+
+    // STEP 4: Run the real method
+    processor.ProcessOrderForCustomer(5);
+
+    // STEP 5: Use the controller to verify what happened to the fake
+    mockService.Verify(x =&gt; x.GetCustomer(5), Times.Once);
+}</code></pre>`
+  }
+];
+
 book.chapters = [
   {
     number: "01",
@@ -916,7 +1370,18 @@ book.chapters = [
   {
     number: "03",
     title: "Testing",
-    topics: []
+    topics: [
+      {
+        number: "01",
+        title: "Unit Testing",
+        sections: [
+          { number: "01", title: "Unit Testing Fundamentals", pages: unitTestingPages },
+          { number: "02", title: "xUnit", pages: xunitPages },
+          { number: "03", title: "Mocking & Test Data", pages: xunitMockingDataPages },
+          { number: "04", title: "Moq", pages: moqPages }
+        ]
+      }
+    ]
   },
   {
     number: "04",
