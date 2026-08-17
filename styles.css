@@ -44,7 +44,7 @@ button { cursor:pointer; }
 .topic-group { padding-left:18px; }
 .topic-title { color:#d7e0db; font-size:12px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
 .section-group { padding-left:18px; }
-.section-title { color:#aebdb5; font-family:"Instrument Serif"; font-size:14px; grid-template-columns:24px minmax(0,1fr) 16px; }
+.section-title { color:#aebdb5; font-family:"DM Sans",sans-serif; font-size:14px; grid-template-columns:24px minmax(0,1fr) 16px; }
 .section-title.active { color:#fff; }
 .section-title.active span { color:var(--accent); }
 .page-link { color:#9aaba2; font-size:11px; line-height:1.4; padding-left:24px; grid-template-columns:28px 1fr; }

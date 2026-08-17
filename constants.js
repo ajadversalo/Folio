@@ -1319,7 +1319,104 @@ public void ProcessOrder_CallsCustomerService()
     // STEP 5: Use the controller to verify what happened to the fake
     mockService.Verify(x =&gt; x.GetCustomer(5), Times.Once);
 }</code></pre>`
+  },
+  {
+    kicker: "Testing / Unit Testing / Moq / Without Moq",
+    title: "Why can't i do this w/o moq?",
+    lead: "Why can't i do this w/o moq?",
+    content: `<pre><span class="language">C#</span><code>[Fact]
+public void Process_ValidCustomer_SavesToDatabase()
+{
+    var mockService = new Mock&lt;ICustomerService&gt;();
+    var processor = new OrderProcessor(mockService.Object);
+
+    processor.ProcessRegistration(new Customer { Id = 10, Name = "Bob" });
+
+    // Verify SaveCustomer was called exactly once with ANY Customer object
+    mockService.Verify(s =&gt; s.SaveCustomer(It.IsAny&lt;Customer&gt;()), Times.Once);
+
+    // Verify GetCustomer was NEVER called
+    mockService.Verify(s =&gt; s.GetCustomer(It.IsAny&lt;int&gt;()), Times.Never);
+}</code></pre><p>Without Moq (or another mocking framework like NSubstitute), C# cannot dynamically create a fake class for <code>ICustomerService</code> on the fly at runtime. You would have to manually build the fake class and write tracking code yourself.</p>`
+  },
+  {
+    kicker: "Testing / Unit Testing / Moq / Manual Fake",
+    title: "What You Would Have to Write Without Moq",
+    lead: "To run that exact test without Moq, you would need to write a manual \"Spy\" or \"Fake\" implementation of ICustomerService that manually counts calls and records parameters:",
+    content: `<pre><span class="language">C#</span><code>// Manual fake implementation required without Moq
+public class FakeCustomerService : ICustomerService
+{
+    // Tracking state for verification
+    public int SaveCustomerCallCount { get; private set; }
+    public int GetCustomerCallCount { get; private set; }
+    public List&lt;Customer&gt; SavedCustomers { get; } = new();
+
+    public Customer? GetCustomer(int id)
+    {
+        GetCustomerCallCount++;
+        return null;
+    }
+
+    public bool SaveCustomer(Customer customer)
+    {
+        SaveCustomerCallCount++;
+        SavedCustomers.Add(customer);
+        return true;
+    }
+}</code></pre><section class="subsection"><h3>Then your test would look like this:</h3><pre><span class="language">C#</span><code>[Fact]
+public void Process_ValidCustomer_SavesToDatabase()
+{
+    // Arrange: Create manual fake
+    var fakeService = new FakeCustomerService();
+    var processor = new OrderProcessor(fakeService);
+
+    // Act
+    processor.ProcessRegistration(new Customer { Id = 10, Name = "Bob" });
+
+    // Assert: Check manually tracked fields
+    Assert.Equal(1, fakeService.SaveCustomerCallCount);
+    Assert.Equal(0, fakeService.GetCustomerCallCount);
+}</code></pre></section>`
+  },
+  {
+    kicker: "Testing / Unit Testing / Moq / Manual Fakes",
+    title: "Why Manual Fakes Become Unmaintainable",
+    lead: "Writing manual fake classes works fine for 1 or 2 small interfaces, but quickly breaks down in real applications:",
+    content: `<div class="concept-list"><section><span>01</span><div><h3>Interface Bloat</h3><p>If <code>ICustomerService</code> has 15 methods, your manual fake class must implement all 15 methods—even if your test only cares about 1.</p></div></section><section><span>02</span><div><h3>Interface Changes</h3><p>Every time you add, remove, or modify a method signature on <code>ICustomerService</code>, every manual fake class across your entire test suite breaks and must be updated.</p></div></section><section><span>03</span><div><h3>Complex Verification</h3><p>Verifying complex scenarios (e.g., "SaveCustomer was called second, after Validate was called, but only if age &gt; 18") requires writing tedious state machines inside your fake classes.</p></div></section><section><span>04</span><div><h3>Different Test Requirements</h3><p>If Test A needs <code>SaveCustomer</code> to return <code>true</code> and Test B needs it to throw a <code>DatabaseException</code>, you end up writing multiple fake classes or adding configuration flags to a single bloated fake class.</p></div></section></div>`
+  },
+  {
+    kicker: "Testing / Unit Testing / Moq / Purpose",
+    title: "What Moq Solves",
+    lead: "Moq eliminates the need to write and maintain handwritten fake classes.",
+    content: `<p>It generates the fake class in memory dynamically during build/execution time, giving you clean <code>.Setup()</code> and <code>.Verify()</code> syntax per individual test.</p>`
   }
+];
+
+const mergeTestPages = pages => ({
+  ...pages[0],
+  content: `${pages[0].content}${pages.slice(1).map(subsection).join("")}`
+});
+
+const compactUnitTestingPages = [
+  mergeTestPages([unitTestingPages[0], unitTestingPages[1]]),
+  mergeTestPages([unitTestingPages[2], unitTestingPages[3]])
+];
+
+const compactXunitPages = [
+  mergeTestPages([xunitPages[0], xunitPages[1]]),
+  mergeTestPages([xunitPages[2], xunitPages[3], xunitPages[4]])
+];
+
+const compactMockingDataPages = [
+  mergeTestPages([xunitMockingDataPages[0], xunitMockingDataPages[1]]),
+  mergeTestPages([xunitMockingDataPages[2], xunitMockingDataPages[3]])
+];
+
+const compactMoqPages = [
+  mergeTestPages([moqPages[0], moqPages[6], moqPages[7]]),
+  mergeTestPages([moqPages[1], moqPages[2], moqPages[4], moqPages[5]]),
+  mergeTestPages([moqPages[3], moqPages[8]]),
+  mergeTestPages([moqPages[9], moqPages[10], moqPages[11], moqPages[12]])
 ];
 
 book.chapters = [
@@ -1375,10 +1472,10 @@ book.chapters = [
         number: "01",
         title: "Unit Testing",
         sections: [
-          { number: "01", title: "Unit Testing Fundamentals", pages: unitTestingPages },
-          { number: "02", title: "xUnit", pages: xunitPages },
-          { number: "03", title: "Mocking & Test Data", pages: xunitMockingDataPages },
-          { number: "04", title: "Moq", pages: moqPages }
+          { number: "01", title: "Unit Testing Fundamentals", pages: compactUnitTestingPages },
+          { number: "02", title: "xUnit", pages: compactXunitPages },
+          { number: "03", title: "Mocking & Test Data", pages: compactMockingDataPages },
+          { number: "04", title: "Moq", pages: compactMoqPages }
         ]
       }
     ]
