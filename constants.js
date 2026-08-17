@@ -1434,6 +1434,428 @@ const compactMoqPages = [
   mergeTestPages([moqPages[9], moqPages[10], moqPages[11], moqPages[12]])
 ];
 
+const csharpFundamentalsPages = [
+  {
+    kicker: "C# / Fundamentals / Core Syntax",
+    title: "C# Core Syntax & Concepts",
+    lead: "C# is a modern, object-oriented programming language developed by Microsoft.",
+    content: `<p>It runs on the .NET runtime, making it cross-platform (Windows, macOS, Linux) and widely used for building web apps, desktop software, cloud services, and games (via Unity).</p><section class="subsection"><h3>1. Hello World Structure</h3><pre><span class="language">C#</span><code>using System;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Console.WriteLine("Hello, World!");
+        }
+    }
+}</code></pre></section><section class="subsection"><h3>2. Variables &amp; Data Types</h3><p>C# is strongly typed, meaning every variable must have a declared type.</p><pre><span class="language">C#</span><code>int age = 25;                  // Whole numbers
+double price = 19.99;          // Floating-point numbers
+char grade = 'A';              // Single character
+string name = "Alice";         // Text
+bool isActive = true;          // True/False
+
+// Type inference (compiler figures out the type)
+var count = 10;</code></pre></section><section class="subsection"><h3>3. Control Flow</h3><pre><span class="language">C#</span><code>// Conditional
+if (age &gt;= 18)
+{
+    Console.WriteLine("Adult");
+}
+else
+{
+    Console.WriteLine("Minor");
+}
+
+// Loops
+for (int i = 0; i &lt; 5; i++)
+{
+    Console.WriteLine(i);
+}
+
+string[] fruits = { "Apple", "Banana", "Cherry" };
+foreach (string fruit in fruits)
+{
+    Console.WriteLine(fruit);
+}</code></pre></section>`
+  },
+  {
+    kicker: "C# / Fundamentals / OOP & Features",
+    title: "Object-Oriented Fundamentals",
+    lead: "Classes & Properties",
+    content: `<pre><span class="language">C#</span><code>public class Car
+{
+    // Auto-implemented Property
+    public string Model { get; set; }
+    public int Year { get; set; }
+
+    // Constructor
+    public Car(string model, int year)
+    {
+        Model = model;
+        Year = year;
+    }
+
+    // Method
+    public void Drive()
+    {
+        Console.WriteLine($"{Model} is driving.");
+    }
+}
+
+// Usage:
+Car myCar = new Car("Toyota", 2022);
+myCar.Drive();</code></pre><section class="subsection"><h3>Key Features to Know</h3><div class="concept-list"><section><span>01</span><div><h3>Type Safety &amp; Null Safety</h3><p>Modern C# helps prevent <code>NullReferenceException</code> errors by distinguishing between nullable and non-nullable reference types (<code>string? nullableText = null;</code>).</p></div></section><section><span>02</span><div><h3>Memory Management</h3><p>Includes automatic garbage collection, so you don't manually allocate or free memory like in C++.</p></div></section><section><span>03</span><div><h3>LINQ (Language Integrated Query)</h3><p>Expressive syntax to query and transform collections:</p><pre><span class="language">C#</span><code>var evenNumbers = numbers.Where(n =&gt; n % 2 == 0);</code></pre></div></section></div></section>`
+  }
+];
+
+const csharpClassesPages = [
+  {
+    kicker: "C# / Fundamentals / Classes",
+    title: "Classes in C#",
+    lead: "A class in C# is a blueprint for creating objects.",
+    content: `<p>It bundles data (fields/properties) and actions (methods) together into a single unit.</p><section class="subsection"><h3>Basic Anatomy of a Class</h3><p>Here is a straightforward class definition and how to instantiate it:</p><pre><span class="language">C#</span><code>public class BankAccount
+{
+    // 1. Fields (private variables holding internal data)
+    private decimal _balance;
+
+    // 2. Properties (controlled access to fields)
+    public string AccountHolder { get; set; }
+
+    public decimal Balance
+    {
+        get { return _balance; }
+    }
+
+    // 3. Constructor (runs automatically when an object is created)
+    public BankAccount(string holder, decimal initialDeposit)
+    {
+        AccountHolder = holder;
+        _balance = initialDeposit;
+    }
+
+    // 4. Methods (actions the class can perform)
+    public void Deposit(decimal amount)
+    {
+        if (amount &gt; 0)
+        {
+            _balance += amount;
+        }
+    }
+}
+
+// Creating an instance (Object) of the class:
+BankAccount account = new BankAccount("Alice", 100.00m);
+account.Deposit(50.00m);
+
+Console.WriteLine($"{account.AccountHolder} has \${account.Balance}");
+// Output: Alice has $150.00</code></pre></section><section class="subsection"><h3>Core Concepts Explained</h3><div class="concept-list"><section><span>01</span><div><h3>Constructors</h3><p>Special methods with the exact same name as the class. They set up initial state when you use the <code>new</code> keyword. If you don't write one, C# provides a default empty constructor.</p></div></section><section><span>02</span><div><h3>Access Modifiers</h3><p>Control who can see or change your data:</p><ul><li><code>public</code> — Accessible from anywhere.</li><li><code>private</code> — Accessible only inside the class itself.</li><li><code>protected</code> — Accessible inside the class and any derived classes (inheritance).</li></ul></div></section><section><span>03</span><div><h3>Properties (get / set)</h3><p>Protect your fields from direct modification while giving outer code a clean way to read or write data.</p></div></section></div></section><section class="subsection"><h3>Value Types vs. Reference Types</h3><p>Classes are Reference Types. When you assign a class instance to another variable, both variables point to the exact same object in memory:</p><pre><span class="language">C#</span><code>BankAccount account1 = new BankAccount("Bob", 200.00m);
+BankAccount account2 = account1; // Both reference the same object
+
+account2.Deposit(100.00m);
+
+// Modifying account2 affects account1 because they share memory
+Console.WriteLine(account1.Balance); // Output: 300.00</code></pre></section>`
+  }
+];
+
+const csharpInheritancePages = [
+  {
+    kicker: "C# / Fundamentals / Inheritance",
+    title: "Inheritance",
+    lead: "Inheritance allows a class (a child or derived class) to inherit fields, properties, and methods from another class (a parent or base class).",
+    content: `<p>This promotes code reuse and allows you to establish a "is-a" relationship between types.</p><section class="subsection"><h3>Basic Inheritance Syntax</h3><p>In C#, you use a colon (<code>:</code>) to inherit from a base class.</p><pre><span class="language">C#</span><code>// Base Class (Parent)
+public class Animal
+{
+    public string Name { get; set; }
+
+    public void Eat()
+    {
+        Console.WriteLine($"{Name} is eating.");
+    }
+}
+
+// Derived Class (Child)
+public class Dog : Animal
+{
+    public void Bark()
+    {
+        Console.WriteLine($"{Name} says Woof!");
+    }
+}
+
+// Usage:
+Dog myDog = new Dog();
+myDog.Name = "Buddy"; // Inherited property from Animal
+myDog.Eat();          // Inherited method from Animal
+myDog.Bark();         // Dog's own method</code></pre></section><section class="subsection"><h3>Virtual and Override Methods</h3><p>By default, methods in C# cannot be changed by derived classes. If you want a parent class to define a method that child classes can customize, you use two keywords:</p><div class="concept-list"><section><span>V</span><div><h3>virtual</h3><p>Placed on the base class method to indicate it can be overridden.</p></div></section><section><span>O</span><div><h3>override</h3><p>Placed on the derived class method to supply a new implementation.</p></div></section></div><pre><span class="language">C#</span><code>public class Animal
+{
+    public string Name { get; set; }
+
+    // 'virtual' allows child classes to redefine this behavior
+    public virtual void MakeSound()
+    {
+        Console.WriteLine("Some generic animal sound.");
+    }
+}
+
+public class Dog : Animal
+{
+    // 'override' replaces the base class behavior
+    public override void MakeSound()
+    {
+        Console.WriteLine("Woof!");
+    }
+}
+
+public class Cat : Animal
+{
+    public override void MakeSound()
+    {
+        Console.WriteLine("Meow!");
+    }
+}</code></pre></section><section class="subsection"><h3>Why Polymorphism Matters</h3><p>Because <code>Dog</code> and <code>Cat</code> both inherit from <code>Animal</code>, you can treat them as <code>Animal</code> objects while preserving their specific overridden behaviors at runtime:</p><pre><span class="language">C#</span><code>List&lt;Animal&gt; animals = new List&lt;Animal&gt;
+{
+    new Dog { Name = "Rover" },
+    new Cat { Name = "Whiskers" },
+    new Animal { Name = "Generic" }
+};
+
+foreach (Animal animal in animals)
+{
+    // Calls the correct overridden method for each specific type
+    animal.MakeSound();
+}
+
+// Output:
+// Woof!
+// Meow!
+// Some generic animal sound.</code></pre></section><section class="subsection"><h3>Key Rules to Remember</h3><div class="concept-list"><section><span>01</span><div><h3>Base Keyword (base)</h3><p>If a child class overrides a method but still wants to execute the parent class implementation, it can call <code>base.MakeSound()</code>.</p></div></section><section><span>02</span><div><h3>Single Inheritance</h3><p>A class in C# can only inherit from one base class directly.</p></div></section><section><span>03</span><div><h3>Sealed Methods</h3><p>If you want to prevent further derived classes from overriding a method again down the chain, you can mark it as <code>sealed override</code>.</p></div></section></div></section>`
+  }
+];
+
+const csharpAbstractionsPages = [
+  {
+    kicker: "C# / Fundamentals / Abstract Classes & Interfaces",
+    title: "Abstract Classes and Interfaces",
+    lead: "Abstract classes and interfaces allow you to define blueprints that enforce what derived classes must implement, rather than just sharing code through normal inheritance.",
+    content: `<section class="subsection"><h3>Abstract Classes</h3><p>An abstract class is an incomplete base class intended solely to be inherited from. You cannot instantiate an abstract class directly using <code>new</code>.</p><div class="concept-list"><section><span>A</span><div><h3>Abstract Methods</h3><p>Declared without a body using the <code>abstract</code> keyword. Derived classes must override them.</p></div></section><section><span>C</span><div><h3>Concrete Methods</h3><p>Can also contain regular methods with full implementations that child classes inherit.</p></div></section></div><pre><span class="language">C#</span><code>public abstract class Shape
+{
+    // Concrete property shared by all shapes
+    public string Color { get; set; } = "Red";
+
+    // Abstract method: MUST be implemented by child classes
+    public abstract double CalculateArea();
+
+    // Concrete method: inherited as-is
+    public void DisplayColor()
+    {
+        Console.WriteLine($"Shape color is {Color}");
+    }
+}
+
+public class Circle : Shape
+{
+    public double Radius { get; set; }
+
+    // Must override the abstract method
+    public override double CalculateArea()
+    {
+        return Math.PI * Radius * Radius;
+    }
+}</code></pre></section><section class="subsection"><h3>Interfaces</h3><p>An interface is a pure contract. It defines what a class can do, without defining how it does it. A class that implements an interface promises to provide implementations for all members declared by that interface.</p><p>By convention, interface names start with <code>I</code> (e.g., <code>ILogger</code>, <code>IDrawable</code>).</p><p>A class can implement multiple interfaces, overcoming the single-inheritance limit of C# classes.</p><pre><span class="language">C#</span><code>public interface IDrawable
+{
+    void Draw();
+}
+
+public interface IResizable
+{
+    void Resize(double factor);
+}
+
+// Implementing multiple interfaces
+public class CanvasImage : IDrawable, IResizable
+{
+    public void Draw()
+    {
+        Console.WriteLine("Drawing image on canvas...");
+    }
+
+    public void Resize(double factor)
+    {
+        Console.WriteLine($"Resizing image by factor of {factor}");
+    }
+}</code></pre></section><section class="subsection"><h3>Direct Comparison</h3><div class="table-wrap"><table><thead><tr><th>Feature</th><th>Normal Inheritance</th><th>Abstract Class</th><th>Interface</th></tr></thead><tbody><tr><td>Instantiation</td><td><code>new Parent()</code> is allowed</td><td>Cannot use <code>new</code> directly</td><td>Cannot use <code>new</code> directly</td></tr><tr><td>Default Method Code</td><td>Full implementation provided</td><td>Mix of implemented and abstract methods</td><td>Methods are signatures only (unless default interface methods are used)</td></tr><tr><td>Multiple Inheritance</td><td>Inherit from 1 base class</td><td>Inherit from 1 abstract class</td><td>Implement multiple interfaces</td></tr><tr><td>Fields &amp; State</td><td>Can hold state/fields</td><td>Can hold state/fields</td><td>Cannot declare instance fields</td></tr><tr><td>Access Modifiers</td><td><code>public</code>, <code>protected</code>, <code>private</code></td><td><code>public</code>, <code>protected</code>, <code>private</code></td><td>Members default to <code>public</code></td></tr></tbody></table></div></section><section class="subsection"><h3>When to Use Which</h3><div class="concept-list"><section><span>01</span><div><h3>Normal Inheritance</h3><p>Use Normal Inheritance when child classes share a significant amount of identical logic and need default behavior they can optionally override.</p></div></section><section><span>02</span><div><h3>Abstract Classes</h3><p>Use Abstract Classes when classes share a strong "is-a" relationship and common state/code, but you need to force derived classes to provide specific details.</p></div></section><section><span>03</span><div><h3>Interfaces</h3><p>Use Interfaces when establishing a capability or contract ("can-do" relationship) across unrelated classes (e.g., both a <code>UserAccount</code> and a <code>DatabaseConnection</code> might implement <code>IDisposable</code>).</p></div></section></div></section>`
+  }
+];
+
+const csharpMemoryPages = [
+  {
+    kicker: "C# / Fundamentals / Memory Management",
+    title: "Stack, Heap, and Memory Management",
+    lead: "Memory management in C# is split into two distinct areas: the Stack and the Heap.",
+    content: `<p>How data is allocated depends primarily on whether a variable is a Value Type (such as <code>int</code>, <code>bool</code>, <code>struct</code>) or a Reference Type (such as <code>class</code>, <code>string</code>, <code>array</code>).</p><section class="subsection"><h3>The Stack vs. The Heap</h3><div class="definition-pair"><article><span>Stack</span><div><strong>The Stack</strong><p><b>How it works:</b> A fast, LIFO (Last-In, First-Out) memory block managed directly by the CPU.</p><p><b>Lifecycle:</b> Memory is allocated when a method is called and automatically deallocated the instant the method exits.</p><p><b>Characteristics:</b> Extremely fast access, small fixed size, no Garbage Collector involvement.</p></div></article><article><span>Heap</span><div><strong>The Heap</strong><p><b>How it works:</b> A large pool of memory used for dynamic, long-lived storage.</p><p><b>Lifecycle:</b> Memory stays allocated until the Garbage Collector (GC) identifies that no active references point to it and cleans it up.</p><p><b>Characteristics:</b> Slower allocation/access than the Stack, subject to fragmentation and GC pauses.</p></div></article></div></section><section class="subsection"><h3>Allocation Rules for Value Types and Reference Types</h3><div class="concept-list"><section><span>01</span><div><h3>Value Types (struct, int, double, bool, enum)</h3><p><b>Where they live:</b> Directly on the Stack when declared as local variables in a method.</p><p><b>Key Exception:</b> If a value type is a field inside a class, it lives on the Heap inside that class instance's memory footprint.</p></div></section><section><span>02</span><div><h3>Reference Types (class, string, object, delegate, arrays)</h3><p><b>Where they live:</b> Split into two parts:</p><ul><li>The actual object data resides on the Heap.</li><li>The variable itself holds a memory address (a reference pointer), which sits on the Stack (if declared locally) pointing to that Heap location.</li></ul></div></section></div></section><section class="subsection"><h3>Memory Layout Example</h3><pre><span class="language">C#</span><code>public struct Point // Value Type
+{
+    public int X;
+    public int Y;
+}
+
+public class Person // Reference Type
+{
+    public string Name; // Reference Type field
+    public int Age;     // Value Type field
+}
+
+public void ProcessData()
+{
+    int age = 30;                     // Line 1: Stack
+    Point pt = new Point { X = 5 };   // Line 2: Stack
+    Person person = new Person();     // Line 3: Pointer on Stack, Object on Heap
+}</code></pre><section class="subsection"><h3>What Happens in Memory During ProcessData():</h3><pre><code>      [ STACK ]                                    [ HEAP ]
++-------------------+                      +-----------------------+
+| age: 30           |                      |                       |
+| pt: { X: 5, Y: 0 }|                      |                       |
+| person: [0x1A40]  | -------------------&gt; | Person Object [0x1A40]|
++-------------------+                      |   Name: [null]        |
+                                           |   Age: 0              |
+                                           +-----------------------+</code></pre><div class="concept-list"><section><span>age</span><div><h3>Value Type</h3><p>Stored directly on the Stack.</p></div></section><section><span>pt</span><div><h3>Value Type Struct</h3><p>The entire <code>Point</code> struct is stored directly on the Stack. Even though <code>new</code> was used, structs do not allocate Heap memory by default.</p></div></section><section><span>person</span><div><h3>Reference Type Class</h3><ul><li>A reference pointer (<code>0x1A40</code>) is pushed onto the Stack.</li><li>The actual <code>Person</code> instance is created on the Heap.</li><li>The <code>Age</code> field (Value Type) lives inside the <code>Person</code> object block on the Heap.</li></ul></div></section></div></section></section><section class="subsection"><h3>Boxing and Unboxing</h3><p>When a Value Type needs to be treated as a Reference Type (e.g., passed to a parameter of type <code>object</code> or an interface), C# performs Boxing.</p><div class="concept-list"><section><span>B</span><div><h3>Boxing</h3><p>Copies the value from the Stack into a wrapped object created on the Heap.</p></div></section><section><span>U</span><div><h3>Unboxing</h3><p>Extracts the original value back from the Heap object to the Stack.</p></div></section></div><pre><span class="language">C#</span><code>int val = 42;       // Stack allocation
+object obj = val;   // BOXING: Allocates an object on Heap and copies 42 into it
+int num = (int)obj; // UNBOXING: Copies value back from Heap to Stack</code></pre><p>Overusing boxing in tight loops causes performance degradation because it creates unnecessary Heap allocations and triggers the Garbage Collector.</p></section>`
+  }
+];
+
+const csharpParameterPassingPages = [
+  {
+    kicker: "C# / Fundamentals / Parameter Passing",
+    title: "Value, ref, out, and in Parameters",
+    lead: "By default, C# passes arguments by value:",
+    content: `<div class="concept-list"><section><span>V</span><div><h3>Value Types</h3><p>A complete copy of the data is pushed onto the stack. Changes made inside the method operate on the copy and do not affect the original variable.</p></div></section><section><span>R</span><div><h3>Reference Types</h3><p>A copy of the reference (the pointer) is pushed onto the stack. Both pointers refer to the same object on the heap, so modifying properties alters the heap object, but reassigning the parameter to a new object does not change the caller's reference.</p></div></section></div><p>The <code>ref</code>, <code>out</code>, and <code>in</code> keywords change this default behavior by passing the stack memory address (a reference to the variable's storage location) rather than copying the parameter's contents.</p><section class="subsection"><h3>Key Parameter Modifiers Compared</h3><div class="table-wrap"><table><thead><tr><th>Modifier</th><th>Intent / Mutability</th><th>Initialization Requirement</th><th>Stack Overhead</th></tr></thead><tbody><tr><td><code>ref</code></td><td>Read &amp; Write</td><td>Must be initialized before calling the method.</td><td>Copies a pointer address (4 or 8 bytes) instead of copying the struct data.</td></tr><tr><td><code>out</code></td><td>Write-Only (Output)</td><td>Does not need initialization before call, but must be assigned inside the method before returning.</td><td>Copies a pointer address; used for returning multiple values.</td></tr><tr><td><code>in</code></td><td>Read-Only</td><td>Must be initialized before calling. The method cannot modify the parameter.</td><td>Copies a pointer address; prevents copying large structs for performance.</td></tr></tbody></table></div></section><section class="subsection"><h3>Behavior on Value Types (struct, int, etc.)</h3><p>Normally, passing a large struct repeatedly allocates memory and copies all its fields onto the stack frame for every method call.</p><p>Using parameter modifiers replaces that data copy with a fixed-size memory pointer to the existing stack frame location.</p><pre><span class="language">C#</span><code>public struct LargeMatrix // e.g., 64 bytes on stack
+{
+    public double M11, M12, M21, M22;
+    // ... additional fields ...
+}
+
+public void ProcessMatrix(ref LargeMatrix m1, out LargeMatrix result, in LargeMatrix m2)
+{
+    // m1: Modifiable. Edits directly update the caller's matrix on their stack frame.
+    m1.M11 = 1.0;
+
+    // m2: Read-only. Prevents a 64-byte copy onto this stack frame.
+    // m2.M11 = 2.0; // COMPILE ERROR: Cannot assign to 'in' parameter
+
+    // result: Must be assigned before method exits.
+    result = new LargeMatrix { M11 = m1.M11 + m2.M11 };
+}</code></pre><section class="subsection"><h3>Memory Stack Layout for Value Types:</h3><pre><code>Caller Stack Frame                   ProcessMatrix Stack Frame
++----------------------------+       +------------------------------------+
+| LargeMatrix m1 (data)      | &lt;==== | Pointer to m1 (ref)                |
+| LargeMatrix m2 (data)      | &lt;==== | Pointer to m2 (in)                 |
+| LargeMatrix result (uninit)| &lt;==== | Pointer to result (out)            |
++----------------------------+       +------------------------------------+</code></pre></section></section><section class="subsection"><h3>Behavior on Reference Types (class, string, etc.)</h3><p>For reference types, the variable on the stack already holds a pointer to an object on the heap.</p><p>Passing a reference type by value passes a copy of that pointer. Passing a reference type with <code>ref</code>, <code>out</code>, or <code>in</code> passes a pointer to the pointer.</p><section class="subsection"><h3>Standard Pass-by-Value vs. ref Reassignment:</h3><pre><span class="language">C#</span><code>public class Node
+{
+    public string Name { get; set; }
+}
+
+// 1. Pass-by-Value (Default)
+public void ReassignStandard(Node node)
+{
+    node = new Node { Name = "New Node" }; // Changes local pointer copy only
+}
+
+// 2. Pass-by-Reference
+public void ReassignRef(ref Node node)
+{
+    node = new Node { Name = "New Node" }; // Overwrites caller's pointer on their stack frame
+}
+
+// --- Usage ---
+Node myNode = new Node { Name = "Original Node" };
+
+ReassignStandard(myNode);
+Console.WriteLine(myNode.Name); // Output: "Original Node" (Reference wasn't changed)
+
+ReassignRef(ref myNode);
+Console.WriteLine(myNode.Name); // Output: "New Node" (Caller's stack variable now points to new heap object)</code></pre></section><section class="subsection"><h3>Memory Stack Layout for Reference Types with ref:</h3><pre><code>Caller Stack                     ProcessMatrix Stack                 Heap Memory
++-----------------------+        +--------------------------+        +--------------------+
+| myNode: [0x8F20]      | &lt;===== | ref node: [&amp;myNode]      |        | Node Object [0x8F20|
++-----------------------+        +--------------------------+        +--------------------+
+           |                                                                  ^
+           +------------------------------------------------------------------+</code></pre><p>When <code>ReassignRef</code> assigns a new <code>Node</code>, it uses the pointer <code>&amp;myNode</code> to rewrite <code>myNode</code>'s value directly on the caller's stack frame to point to the new Heap memory address.</p></section></section>`
+  }
+];
+
+const csharpServicesPages = [
+  {
+    kicker: "C# / Fundamentals / Services",
+    title: "Services in C#",
+    lead: "In C#, a service is a self-contained component designed to perform a specific background task, execute business logic, or handle cross-cutting concerns (like logging or data access).",
+    content: `<p>Depending on the context, "services in C#" refers to three distinct patterns and frameworks:</p><section class="subsection"><h3>1. Dependency Injection (DI) Services</h3><p>In modern .NET applications (ASP.NET Core, Worker Services, Console Apps), services are classes that encapsulate business logic or external integrations, registered with the Built-in Service Container and injected where needed.</p><section class="subsection"><h3>Service Lifetimes</h3><div class="table-wrap"><table><thead><tr><th>Lifetime</th><th>Method</th><th>Behavior</th><th>Use Case</th></tr></thead><tbody><tr><td>Transient</td><td><code>AddTransient&lt;IService, Service&gt;()</code></td><td>Created every single time it is requested.</td><td>Light, stateless operations.</td></tr><tr><td>Scoped</td><td><code>AddScoped&lt;IService, Service&gt;()</code></td><td>Created once per HTTP request (or boundary scope).</td><td>Database contexts (<code>DbContext</code>), per-request state.</td></tr><tr><td>Singleton</td><td><code>AddSingleton&lt;IService, Service&gt;()</code></td><td>Created once for the entire application lifespan.</td><td>In-memory caching, application configuration, state singletons.</td></tr></tbody></table></div></section><section class="subsection"><h3>Example Implementation</h3><pre><span class="language">C#</span><code>// 1. Contract
+public interface IOrderService
+{
+    void ProcessOrder(int orderId);
+}
+
+// 2. Implementation
+public class OrderService : IOrderService
+{
+    private readonly ILogger&lt;OrderService&gt; _logger;
+
+    public OrderService(ILogger&lt;OrderService&gt; logger)
+    {
+        _logger = logger;
+    }
+
+    public void ProcessOrder(int orderId)
+    {
+        _logger.LogInformation("Processing order {OrderId}", orderId);
+    }
+}
+
+// 3. Registration (Program.cs)
+var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddScoped&lt;IOrderService, OrderService&gt;();
+
+// 4. Injection via Controller / Endpoint
+app.MapPost("/orders/{id}", (int id, IOrderService orderService) =&gt;
+{
+    orderService.ProcessOrder(id);
+    return Results.Ok();
+});</code></pre></section></section><section class="subsection"><h3>2. Background &amp; Hosted Services</h3><p>For running long-lived background jobs, task processing queues, or scheduled work without blocking the main application thread, .NET provides <code>IHostedService</code> and the abstract <code>BackgroundService</code> class.</p><pre><span class="language">C#</span><code>public class QueueProcessorService : BackgroundService
+{
+    private readonly ILogger&lt;QueueProcessorService&gt; _logger;
+
+    public QueueProcessorService(ILogger&lt;QueueProcessorService&gt; logger)
+    {
+        _logger = logger;
+    }
+
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        while (!stoppingToken.IsCancellationRequested)
+        {
+            _logger.LogInformation("Checking background queue at: {time}", DateTimeOffset.Now);
+
+            // Perform background work
+            await Task.Delay(5000, stoppingToken);
+        }
+    }
+}
+
+// Registration in Program.cs
+builder.Services.AddHostedService&lt;QueueProcessorService&gt;();</code></pre></section><section class="subsection"><h3>3. Windows Services &amp; Daemon Services</h3><p>In traditional infrastructure, a service refers to an OS-level daemon running in the background without a UI.</p><p>Modern .NET simplifies building these via Worker Service templates using the <code>Microsoft.Extensions.Hosting.WindowsServices</code> or Systemd packages:</p><pre><span class="language">C#</span><code>// Registers app as an OS background service
+var builder = Host.CreateApplicationBuilder(args);
+
+builder.Services.AddWindowsService(options =&gt;
+{
+    options.ServiceName = "MyCustomProcessingService";
+});
+
+builder.Services.AddHostedService&lt;QueueProcessorService&gt;();
+
+var host = builder.Build();
+host.Run();</code></pre></section>`
+  }
+];
+
 book.chapters = [
   {
     number: "01",
@@ -1504,6 +1926,25 @@ book.chapters = [
     number: "05",
     title: "Azure",
     topics: []
+  },
+  {
+    number: "06",
+    title: "C#",
+    topics: [
+      {
+        number: "01",
+        title: "Fundamentals",
+        sections: [
+          { number: "01", title: "Core Syntax & Concepts", pages: csharpFundamentalsPages },
+          { number: "02", title: "Classes", pages: csharpClassesPages },
+          { number: "03", title: "Inheritance", pages: csharpInheritancePages },
+          { number: "04", title: "Abstract Classes & Interfaces", pages: csharpAbstractionsPages },
+          { number: "05", title: "Memory Management", pages: csharpMemoryPages },
+          { number: "06", title: "Parameter Passing", pages: csharpParameterPassingPages },
+          { number: "07", title: "Services", pages: csharpServicesPages }
+        ]
+      }
+    ]
   }
 ];
 
