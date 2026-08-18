@@ -1,7 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 require("./icons.js");
-const required = ["index.html", "styles.css", "constants.js", "app.js", "manifest.webmanifest", "sw.js", "icon-192.png", "icon-512.png"];
+const required = ["index.html", "styles.css", "constants.js", "app.js", "management.html", "management.css", "management.js", "manifest.webmanifest", "sw.js", "icon-192.png", "icon-512.png"];
 for (const file of required) {
   if (!fs.existsSync(path.join(__dirname, "..", file))) throw new Error(`Missing ${file}`);
 }

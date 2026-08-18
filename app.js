@@ -172,6 +172,7 @@ async function hydrateBook() {
     const payload = await response.json();
     if (!payload.book?.chapters || !Array.isArray(payload.book.chapters)) throw new Error("Invalid book response");
     book = payload.book;
+    document.querySelector("#bookTitle").textContent = book.topic;
     pages = flattenPages(book);
     if (!pages.length) throw new Error("The database book has no pages");
     current = Math.max(0, Math.min(pages.length - 1, current));
@@ -267,6 +268,7 @@ pageSoundToggle.addEventListener("change", () => {
 });
 function showToast(message) { const toast = document.querySelector("#toast"); toast.textContent = message; toast.classList.add("show"); setTimeout(() => toast.classList.remove("show"), 1800); }
 pageSoundToggle.checked = pageSoundEnabled;
+document.querySelector("#bookTitle").textContent = book.topic;
 document.body.dataset.theme = theme; applyReaderSize(); render();
 if (typeof location !== "undefined") hydrateBook().then(hydrateRemoteState);
 if ("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("/sw.js"));

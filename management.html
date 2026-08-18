@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#252a31">
+  <link rel="stylesheet" href="management.css">
+  <title>Folio Management</title>
+</head>
+<body>
+  <header class="management-header">
+    <a href="/" class="brand"><span>F</span>Folio</a>
+    <div><p>Content administration</p><h1>Management</h1></div>
+  </header>
+  <main>
+    <section class="access-card" id="accessCard">
+      <div><p class="eyebrow">Protected access</p><h2>Connect to Folio</h2><p>Enter the admin key configured on the server. It is retained only for this browser tab.</p></div>
+      <form id="accessForm"><label>Admin key<input id="adminKey" type="password" autocomplete="current-password" required></label><button>Unlock management</button></form>
+    </section>
+
+    <div id="workspace" hidden>
+      <section class="intro"><div><p class="eyebrow">Folio structure</p><h2>Chapters and topics</h2><p>Create empty navigation entries now and add their content later.</p></div><button class="secondary" id="lockButton">Lock</button></section>
+      <div class="form-grid">
+        <form class="editor-card" id="chapterForm">
+          <p class="eyebrow">New chapter</p><h3>Add a chapter</h3>
+          <label>Number<input name="number" placeholder="08" maxlength="120" required></label>
+          <label>Title<input name="title" placeholder="Architecture" maxlength="120" required></label>
+          <button>Add chapter</button>
+        </form>
+        <form class="editor-card" id="topicForm">
+          <p class="eyebrow">New topic</p><h3>Add a topic</h3>
+          <label>Chapter<select name="chapterId" id="chapterSelect" required></select></label>
+          <label>Number<input name="number" placeholder="01" maxlength="120" required></label>
+          <label>Title<input name="title" placeholder="Fundamentals" maxlength="120" required></label>
+          <button>Add topic</button>
+        </form>
+      </div>
+      <section class="structure-card"><p class="eyebrow">Current structure</p><div id="structure"></div></section>
+    </div>
+  </main>
+  <div class="toast" id="toast" role="status"></div>
+  <script src="management.js"></script>
+</body>
+</html>

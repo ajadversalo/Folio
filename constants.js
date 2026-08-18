@@ -1,6 +1,6 @@
 (() => {
 const book = {
-  topic: "Object-Oriented Programming",
+  topic: "Folio",
   chapters: [{ number: "01", title: "SOLID", pages: [
     { kicker: "Chapter one / SOLID", title: "Dependency Inversion", lead: "The main design principle that handles dependency injection is the Dependency Inversion Principle (DIP)—the “D” in the SOLID principles of Object-Oriented Design.", content: `<p>While <strong>Dependency Inversion</strong> is the principle, <strong>Dependency Injection (DI)</strong> is the concrete technique—or design pattern—used to implement it.</p><div class="chapter-card"><span>01</span><div><small>Principle</small><strong>Dependency Inversion Principle (DIP)</strong></div></div>` },
     { kicker: "Dependency Inversion / The rules", title: "Depend on abstractions.", lead: "DIP states two main rules:", content: `<ol class="principle-list"><li><span>01</span><p>High-level modules should not depend on low-level modules. Both should depend on abstractions, such as interfaces or abstract classes.</p></li><li><span>02</span><p>Abstractions should not depend on details. Details—concrete implementations—should depend on abstractions.</p></li></ol>` },

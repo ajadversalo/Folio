@@ -2,7 +2,8 @@ require("dotenv").config({ path: [".env.local", ".env"], quiet: true });
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
-const { migrate, getBook, getReaderState, saveReaderState } = require("./db");
+const crypto = require("crypto");
+const { migrate, getBook, getManagementStructure, createChapter, createTopic, getReaderState, saveReaderState } = require("./db");
 
 const root = __dirname;
 const types = { ".html": "text/html", ".css": "text/css", ".js": "text/javascript", ".json": "application/json", ".svg": "image/svg+xml", ".png": "image/png" };
@@ -36,6 +37,19 @@ function validState(value) {
     Array.isArray(value.bookmarks) && value.bookmarks.every(Number.isInteger);
 }
 
+function isAdmin(req) {
+  const expected = process.env.FOLIO_ADMIN_KEY || "";
+  const supplied = req.headers["x-folio-admin-key"] || "";
+  if (!expected || typeof supplied !== "string") return false;
+  const expectedBuffer = Buffer.from(expected);
+  const suppliedBuffer = Buffer.from(supplied);
+  return expectedBuffer.length === suppliedBuffer.length && crypto.timingSafeEqual(expectedBuffer, suppliedBuffer);
+}
+
+function validLabel(value) {
+  return typeof value === "string" && value.trim().length > 0 && value.trim().length <= 120;
+}
+
 async function handleRequest(req, res) {
   const urlPath = decodeURIComponent(req.url.split("?")[0]);
   if (urlPath === "/api/book") {
@@ -46,6 +60,29 @@ async function handleRequest(req, res) {
     } catch (error) {
       console.error("Book request failed:", error);
       return json(res, 500, { error: "Unable to load book content" });
+    }
+  }
+  if (["/api/admin/content", "/api/admin/chapters", "/api/admin/topics"].includes(urlPath)) {
+    if (!process.env.FOLIO_ADMIN_KEY) return json(res, 503, { error: "Management access is not configured" });
+    if (!isAdmin(req)) return json(res, 401, { error: "Invalid admin key" });
+    if (urlPath === "/api/admin/content") {
+      if (req.method !== "GET") return json(res, 405, { error: "Method not allowed" });
+      try { return json(res, 200, await getManagementStructure()); }
+      catch (error) { console.error("Management request failed:", error); return json(res, 500, { error: "Unable to load content" }); }
+    }
+    if (req.method !== "POST") return json(res, 405, { error: "Method not allowed" });
+    try {
+      const input = await readJson(req);
+      if (!validLabel(input.number) || !validLabel(input.title)) return json(res, 400, { error: "Number and title are required" });
+      if (urlPath.endsWith("/chapters")) {
+        return json(res, 201, { chapter: await createChapter({ number: input.number.trim(), title: input.title.trim() }) });
+      }
+      if (!validLabel(input.chapterId)) return json(res, 400, { error: "Chapter is required" });
+      return json(res, 201, { topic: await createTopic({ chapterId: input.chapterId, number: input.number.trim(), title: input.title.trim() }) });
+    } catch (error) {
+      console.error("Management request failed:", error);
+      const status = error.message.endsWith("not found") ? 404 : error.message === "Invalid JSON" ? 400 : 500;
+      return json(res, status, { error: status === 500 ? "Unable to save content" : error.message });
     }
   }
   const stateMatch = urlPath.match(/^\/api\/state\/([a-zA-Z0-9_-]{16,64})$/);

@@ -5,7 +5,8 @@ const { SCHEMA_SQL } = require("../db");
 
 const tursoUrl = process.env.TURSO_DATABASE_URL;
 const tursoToken = process.env.TURSO_AUTH_TOKEN;
-const bookId = "oop-guide";
+const bookId = "folio";
+const legacyBookId = "oop-guide";
 
 async function main() {
   if (!tursoUrl || !tursoToken) {
@@ -21,10 +22,11 @@ async function main() {
   try {
     await remote.executeMultiple(SCHEMA_SQL);
     const statements = [
-      { sql: "DELETE FROM pages WHERE book_id = ?", args: [bookId] },
-      { sql: "DELETE FROM sections WHERE book_id = ?", args: [bookId] },
-      { sql: "DELETE FROM topics WHERE book_id = ?", args: [bookId] },
-      { sql: "DELETE FROM chapters WHERE book_id = ?", args: [bookId] },
+      { sql: "DELETE FROM pages WHERE book_id = ?", args: [legacyBookId] },
+      { sql: "DELETE FROM sections WHERE book_id = ?", args: [legacyBookId] },
+      { sql: "DELETE FROM topics WHERE book_id = ?", args: [legacyBookId] },
+      { sql: "DELETE FROM chapters WHERE book_id = ?", args: [legacyBookId] },
+      { sql: "DELETE FROM books WHERE id = ?", args: [legacyBookId] },
       {
         sql: `INSERT INTO books (id, topic, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)
               ON CONFLICT(id) DO UPDATE SET topic = excluded.topic, updated_at = CURRENT_TIMESTAMP`,
@@ -38,21 +40,24 @@ async function main() {
     book.chapters.forEach((chapter, chapterIndex) => {
       const chapterId = `${bookId}:c:${chapterIndex}`;
       statements.push({
-        sql: "INSERT INTO chapters (id, book_id, number, title, sort_order) VALUES (?, ?, ?, ?, ?)",
+        sql: `INSERT INTO chapters (id, book_id, number, title, sort_order) VALUES (?, ?, ?, ?, ?)
+              ON CONFLICT(id) DO UPDATE SET number = excluded.number, title = excluded.title`,
         args: [chapterId, bookId, chapter.number, chapter.title, chapterIndex]
       });
       (chapter.topics || []).forEach((topic, topicIndex) => {
         topicCount += 1;
         const topicId = `${chapterId}:t:${topicIndex}`;
         statements.push({
-          sql: "INSERT INTO topics (id, book_id, chapter_id, number, title, sort_order) VALUES (?, ?, ?, ?, ?, ?)",
+          sql: `INSERT INTO topics (id, book_id, chapter_id, number, title, sort_order) VALUES (?, ?, ?, ?, ?, ?)
+                ON CONFLICT(id) DO UPDATE SET number = excluded.number, title = excluded.title`,
           args: [topicId, bookId, chapterId, topic.number, topic.title, topicIndex]
         });
         (topic.sections || []).forEach((section, sectionIndex) => {
           sectionCount += 1;
           const sectionId = `${topicId}:s:${sectionIndex}`;
           statements.push({
-            sql: "INSERT INTO sections (id, book_id, topic_id, number, title, sort_order) VALUES (?, ?, ?, ?, ?, ?)",
+            sql: `INSERT INTO sections (id, book_id, topic_id, number, title, sort_order) VALUES (?, ?, ?, ?, ?, ?)
+                  ON CONFLICT(id) DO UPDATE SET number = excluded.number, title = excluded.title`,
             args: [sectionId, bookId, topicId, section.number, section.title, sectionIndex]
           });
           (section.pages || []).forEach((page, pageIndex) => {
@@ -60,7 +65,9 @@ async function main() {
             statements.push({
               sql: `INSERT INTO pages
                       (id, book_id, section_id, kicker, title, lead, content, sort_order)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(id) DO UPDATE SET kicker = excluded.kicker, title = excluded.title,
+                      lead = excluded.lead, content = excluded.content`,
               args: [`${sectionId}:p:${pageIndex}`, bookId, sectionId, page.kicker || "", page.title, page.lead || "", page.content || "", pageIndex]
             });
           });

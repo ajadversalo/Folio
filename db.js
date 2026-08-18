@@ -1,4 +1,5 @@
 const { createClient } = require("@libsql/client");
+const { randomUUID } = require("crypto");
 
 const url = process.env.TURSO_DATABASE_URL || "file:folio.db";
 const db = createClient({
@@ -114,7 +115,7 @@ async function saveReaderState(clientId, state) {
   return getReaderState(clientId);
 }
 
-async function getBook(bookId = "oop-guide") {
+async function getBook(bookId = "folio") {
   const bookResult = await db.execute({ sql: "SELECT id, topic FROM books WHERE id = ?", args: [bookId] });
   if (!bookResult.rows.length) return null;
   const [chapterResult, topicResult, sectionResult, pageResult] = await Promise.all([
@@ -144,4 +145,41 @@ async function getBook(bookId = "oop-guide") {
   };
 }
 
-module.exports = { SCHEMA_SQL, migrate, getBook, getReaderState, saveReaderState };
+async function createChapter({ number, title }, bookId = "folio") {
+  const id = `${bookId}:manual:c:${randomUUID()}`;
+  const result = await db.execute({
+    sql: `INSERT INTO chapters (id, book_id, number, title, sort_order)
+          SELECT ?, id, ?, ?, COALESCE((SELECT MAX(sort_order) + 1 FROM chapters WHERE book_id = ?), 0)
+          FROM books WHERE id = ?`,
+    args: [id, number, title, bookId, bookId]
+  });
+  if (!result.rowsAffected) throw new Error("Book not found");
+  return { id, number, title };
+}
+
+async function createTopic({ chapterId, number, title }, bookId = "folio") {
+  const id = `${bookId}:manual:t:${randomUUID()}`;
+  const result = await db.execute({
+    sql: `INSERT INTO topics (id, book_id, chapter_id, number, title, sort_order)
+          SELECT ?, ?, id, ?, ?, COALESCE((SELECT MAX(sort_order) + 1 FROM topics WHERE chapter_id = ?), 0)
+          FROM chapters WHERE id = ? AND book_id = ?`,
+    args: [id, bookId, number, title, chapterId, chapterId, bookId]
+  });
+  if (!result.rowsAffected) throw new Error("Chapter not found");
+  return { id, chapterId, number, title };
+}
+
+async function getManagementStructure(bookId = "folio") {
+  const [chapters, topics] = await Promise.all([
+    db.execute({ sql: "SELECT id, number, title, sort_order FROM chapters WHERE book_id = ? ORDER BY sort_order", args: [bookId] }),
+    db.execute({ sql: "SELECT id, chapter_id, number, title, sort_order FROM topics WHERE book_id = ? ORDER BY chapter_id, sort_order", args: [bookId] })
+  ]);
+  return {
+    chapters: chapters.rows.map(row => ({
+      id: String(row.id), number: String(row.number), title: String(row.title),
+      topics: topics.rows.filter(topic => topic.chapter_id === row.id).map(topic => ({ id: String(topic.id), number: String(topic.number), title: String(topic.title) }))
+    }))
+  };
+}
+
+module.exports = { SCHEMA_SQL, migrate, getBook, getManagementStructure, createChapter, createTopic, getReaderState, saveReaderState };
