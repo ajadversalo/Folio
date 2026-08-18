@@ -30,6 +30,18 @@ try {
 let theme = localStorage.getItem("folio-theme") || "paper";
 let readerSize = Math.max(14, Math.min(22, Number(localStorage.getItem("folio-font-size") || 16)));
 let pageSoundEnabled = localStorage.getItem("folio-page-sound") !== "0";
+const clientId = localStorage.getItem("folio-client-id") || (globalThis.crypto?.randomUUID ? globalThis.crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`);
+localStorage.setItem("folio-client-id", clientId);
+let bookmarks = new Set();
+try {
+  const savedBookmarks = JSON.parse(localStorage.getItem("folio-bookmarks") || "[]");
+  bookmarks = new Set(Array.isArray(savedBookmarks) ? savedBookmarks.filter(Number.isInteger) : []);
+} catch {}
+pages.forEach((_, index) => {
+  if (localStorage.getItem(`folio-bookmark-${index}`) === "1") bookmarks.add(index);
+});
+let syncReady = false;
+let saveTimer;
 const pageEl = document.querySelector("#page");
 const settingsDialog = document.querySelector("#settingsDialog");
 const pageSoundToggle = document.querySelector("#pageSoundToggle");
@@ -85,6 +97,73 @@ function setPage(index) {
   render();
 }
 
+function stateSnapshot() {
+  return {
+    currentPage: current,
+    theme,
+    fontSize: readerSize,
+    pageSound: pageSoundEnabled,
+    expandedGroups: [...expandedGroups],
+    bookmarks: [...bookmarks]
+  };
+}
+
+function saveLocalState() {
+  localStorage.setItem("folio-page", current);
+  localStorage.setItem("folio-theme", theme);
+  localStorage.setItem("folio-font-size", readerSize);
+  localStorage.setItem("folio-page-sound", pageSoundEnabled ? "1" : "0");
+  localStorage.setItem("folio-expanded-groups", JSON.stringify([...expandedGroups]));
+  localStorage.setItem("folio-bookmarks", JSON.stringify([...bookmarks]));
+}
+
+async function saveRemoteState() {
+  if (!syncReady) return;
+  try {
+    const response = await fetch(`/api/state/${encodeURIComponent(clientId)}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(stateSnapshot())
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  } catch (error) {
+    console.warn("Folio could not sync reader state; local changes are retained.", error);
+  }
+}
+
+function persistState() {
+  saveLocalState();
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveRemoteState, 250);
+}
+
+async function hydrateRemoteState() {
+  try {
+    const response = await fetch(`/api/state/${encodeURIComponent(clientId)}`, { cache: "no-store" });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const { state } = await response.json();
+    syncReady = true;
+    if (!state) {
+      await saveRemoteState();
+      return;
+    }
+    current = Math.max(0, Math.min(pages.length - 1, state.currentPage));
+    theme = state.theme;
+    readerSize = state.fontSize;
+    pageSoundEnabled = state.pageSound;
+    expandedGroups = new Set(state.expandedGroups);
+    bookmarks = new Set(state.bookmarks.filter(index => Number.isInteger(index) && index >= 0 && index < pages.length));
+    pageSoundToggle.checked = pageSoundEnabled;
+    document.body.dataset.theme = theme;
+    applyReaderSize();
+    saveLocalState();
+    render();
+  } catch (error) {
+    syncReady = true;
+    console.warn("Folio is using local reader state until the database is available.", error);
+  }
+}
+
 function renderContents() {
   document.querySelector("#contents").innerHTML = book.chapters.map((chapter, ci) =>
     `<section class="chapter-group">
@@ -117,7 +196,7 @@ function renderContents() {
     const key = button.dataset.toggle;
     if (expandedGroups.has(key)) expandedGroups.delete(key);
     else expandedGroups.add(key);
-    localStorage.setItem("folio-expanded-groups", JSON.stringify([...expandedGroups]));
+    persistState();
     renderContents();
   }));
   document.querySelectorAll("[data-page]").forEach(button => button.addEventListener("click", () => { setPage(Number(button.dataset.page)); closeMenu(); }));
@@ -133,7 +212,8 @@ function render() {
   const progress = Math.round(((current + 1) / pages.length) * 100);
   document.querySelector("#progressLabel").textContent = `${progress}% complete`;
   document.querySelector("#progressBar").style.width = `${progress}%`;
-  localStorage.setItem("folio-page", current); renderContents(); pageEl.focus({preventScroll:true});
+  document.querySelector("#bookmarkButton").classList.toggle("saved", bookmarks.has(current));
+  persistState(); renderContents(); pageEl.focus({preventScroll:true});
 }
 function move(step) { setPage(current + step); }
 function openMenu() { document.body.classList.add("menu-open"); }
@@ -144,13 +224,13 @@ document.querySelector("#menuButton").addEventListener("click", openMenu);
 document.querySelector("#closeButton").addEventListener("click", closeMenu);
 document.querySelector("#scrim").addEventListener("click", closeMenu);
 document.addEventListener("keydown", e => { if (!settingsDialog.open && e.key === "ArrowRight") move(1); if (!settingsDialog.open && e.key === "ArrowLeft") move(-1); if (e.key === "Escape") closeMenu(); });
-document.querySelector("#themeButton").addEventListener("click", () => { theme = theme === "paper" ? "night" : theme === "night" ? "mist" : "paper"; document.body.dataset.theme = theme; localStorage.setItem("folio-theme", theme); });
+document.querySelector("#themeButton").addEventListener("click", () => { theme = theme === "paper" ? "night" : theme === "night" ? "mist" : "paper"; document.body.dataset.theme = theme; persistState(); });
 function applyReaderSize() {
   document.documentElement.style.setProperty("--reader-size", `${readerSize}px`);
   document.documentElement.style.setProperty("--code-size", `${Math.max(11, readerSize - 3)}px`);
   document.querySelector("#fontDecrease").disabled = readerSize === 14;
   document.querySelector("#fontIncrease").disabled = readerSize === 22;
-  localStorage.setItem("folio-font-size", readerSize);
+  persistState();
 }
 function changeReaderSize(change) {
   readerSize = Math.max(14, Math.min(22, readerSize + change));
@@ -159,16 +239,17 @@ function changeReaderSize(change) {
 }
 document.querySelector("#fontDecrease").addEventListener("click", () => changeReaderSize(-1));
 document.querySelector("#fontIncrease").addEventListener("click", () => changeReaderSize(1));
-document.querySelector("#bookmarkButton").addEventListener("click", e => { const key = `folio-bookmark-${current}`; const on = localStorage.getItem(key) !== "1"; localStorage.setItem(key, on ? "1" : "0"); e.currentTarget.classList.toggle("saved", on); showToast(on ? "Page saved" : "Bookmark removed"); });
+document.querySelector("#bookmarkButton").addEventListener("click", e => { const on = !bookmarks.has(current); if (on) bookmarks.add(current); else bookmarks.delete(current); persistState(); e.currentTarget.classList.toggle("saved", on); showToast(on ? "Page saved" : "Bookmark removed"); });
 document.querySelector("#settingsButton").addEventListener("click", () => settingsDialog.showModal());
 document.querySelector("#settingsCloseButton").addEventListener("click", () => settingsDialog.close());
 settingsDialog.addEventListener("click", event => { if (event.target === settingsDialog) settingsDialog.close(); });
 pageSoundToggle.addEventListener("change", () => {
   pageSoundEnabled = pageSoundToggle.checked;
-  localStorage.setItem("folio-page-sound", pageSoundEnabled ? "1" : "0");
+  persistState();
   if (pageSoundEnabled) playPageSound();
 });
 function showToast(message) { const toast = document.querySelector("#toast"); toast.textContent = message; toast.classList.add("show"); setTimeout(() => toast.classList.remove("show"), 1800); }
 pageSoundToggle.checked = pageSoundEnabled;
 document.body.dataset.theme = theme; applyReaderSize(); render();
+if (typeof location !== "undefined") hydrateRemoteState();
 if ("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("/sw.js"));
