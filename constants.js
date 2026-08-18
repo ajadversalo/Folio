@@ -1434,6 +1434,187 @@ const compactMoqPages = [
   mergeTestPages([moqPages[9], moqPages[10], moqPages[11], moqPages[12]])
 ];
 
+const jestOverviewPages = [
+  {
+    kicker: "Testing / Jest / Overview",
+    title: "Jest",
+    lead: "Jest is a JavaScript testing framework designed to work out of the box with minimal configuration for modern web applications.",
+    content: `<section class="subsection"><h3>Why Use Jest?</h3><div class="concept-list"><section><span>0</span><div><h3>Zero Configuration</h3><p>Works seamlessly with React, Node.js, TypeScript, and Babel with minimal setup.</p></div></section><section><span>S</span><div><h3>Snapshot Testing</h3><p>Captures UI component states or object structures to track changes over time.</p></div></section><section><span>I</span><div><h3>Isolated Tests</h3><p>Runs tests in parallel in their own processes to maximize speed and prevent cross-test pollution.</p></div></section><section><span>+</span><div><h3>Built-in Tooling</h3><p>Includes a test runner, assertion library, mocking suite, and coverage reporting in a single package.</p></div></section></div></section><section class="subsection"><h3>How Jest Works</h3><p>Jest uses a global runner that discovers files matching standard patterns such as <code>*.test.js</code>, <code>*.spec.js</code>, or files inside <code>__tests__/</code>. It executes them in a <code>jsdom</code> or Node environment and intercepts module imports to support mock implementations.</p></section>`
+  }
+];
+
+const jestTestingPages = [
+  {
+    kicker: "Testing / Jest / Basic Test",
+    title: "Basic Code Sample & Testing",
+    lead: "A test suite can cover both synchronous and asynchronous functions.",
+    content: `<section class="subsection"><h3>math.js</h3><pre><span class="language">JavaScript</span><code>export const sum = (a, b) =&gt; a + b;
+export const fetchUser = async (id) =&gt; {
+  return { id, name: 'Alice' };
+};</code></pre></section><section class="subsection"><h3>math.test.js</h3><pre><span class="language">JavaScript</span><code>import { sum, fetchUser } from './math';
+
+describe('Math utilities', () =&gt; {
+  test('adds two numbers correctly', () =&gt; {
+    expect(sum(2, 3)).toBe(5);
+  });
+
+  test('fetches user asynchronously', async () =&gt; {
+    const data = await fetchUser(1);
+    expect(data).toEqual({ id: 1, name: 'Alice' });
+  });
+});</code></pre></section>`
+  },
+  {
+    kicker: "Testing / Jest / Matchers & Mocking",
+    title: "Common Matchers & Mocking",
+    lead: "Jest provides expressive assertions and built-in mock functions.",
+    content: `<section class="subsection"><h3>Matchers</h3><pre><span class="language">JavaScript</span><code>expect(value).toBe(5);                  // Exact equality (===)
+expect(object).toEqual({ key: 'val' }); // Deep equality
+expect(array).toContain('item');        // Array membership
+expect(fn).toThrow();                   // Exception check</code></pre></section><section class="subsection"><h3>Mock Functions</h3><pre><span class="language">JavaScript</span><code>const mockCallback = jest.fn(x =&gt; 42 + x);
+[0, 1].forEach(mockCallback);
+
+expect(mockCallback).toHaveBeenCalledTimes(2);
+expect(mockCallback.mock.results[0].value).toBe(42);</code></pre></section>`
+  }
+];
+
+const jestModuleMockingPages = [
+  {
+    kicker: "Testing / Jest / Module Mocking",
+    title: "Mocking Modules & APIs",
+    lead: "Mocking dependencies isolates the unit under test without making real network or database calls.",
+    content: `<section class="subsection"><h3>api.js</h3><pre><span class="language">JavaScript</span><code>import axios from 'axios';
+
+export const getUserData = async (userId) =&gt; {
+  const response = await axios.get(\`/users/\${userId}\`);
+  return response.data;
+};</code></pre></section><section class="subsection"><h3>api.test.js</h3><pre><span class="language">JavaScript</span><code>import axios from 'axios';
+import { getUserData } from './api';
+
+// Automatically replace all methods in axios with mock functions
+jest.mock('axios');
+
+describe('getUserData', () =&gt; {
+  it('fetches successfully from API', async () =&gt; {
+    const user = { id: 1, name: 'Jane' };
+    axios.get.mockResolvedValue({ data: user });
+
+    const result = await getUserData(1);
+
+    expect(axios.get).toHaveBeenCalledWith('/users/1');
+    expect(result).toEqual(user);
+  });
+
+  it('handles API failure', async () =&gt; {
+    axios.get.mockRejectedValue(new Error('Network Error'));
+
+    await expect(getUserData(1)).rejects.toThrow('Network Error');
+  });
+});</code></pre></section>`
+  }
+];
+
+const jestTimerPages = [
+  {
+    kicker: "Testing / Jest / Timers & Async",
+    title: "Timers & Async Testing",
+    lead: "Jest can fake system timers such as setTimeout and setInterval so time-based logic can be tested instantly.",
+    content: `<pre><span class="language">JavaScript</span><code>const delayedGreeting = (callback) =&gt; {
+  setTimeout(() =&gt; {
+    callback('Hello!');
+  }, 5000);
+};
+
+describe('Timer tests', () =&gt; {
+  beforeEach(() =&gt; {
+    jest.useFakeTimers();
+  });
+
+  afterEach(() =&gt; {
+    jest.useRealTimers();
+  });
+
+  test('executes callback after delay', () =&gt; {
+    const callback = jest.fn();
+
+    delayedGreeting(callback);
+    expect(callback).not.toHaveBeenCalled();
+
+    // Fast-forward all timers by 5 seconds
+    jest.advanceTimersByTime(5000);
+
+    expect(callback).toHaveBeenCalledWith('Hello!');
+  });
+});</code></pre>`
+  }
+];
+
+const jestLifecyclePages = [
+  {
+    kicker: "Testing / Jest / Lifecycle",
+    title: "Testing Lifecycle Hooks",
+    lead: "Jest provides hooks to set up and tear down state before or after tests.",
+    content: `<pre><span class="language">JavaScript</span><code>let dbConnection;
+
+beforeAll(async () =&gt; {
+  dbConnection = await connectToDatabase();
+});
+
+afterAll(async () =&gt; {
+  await dbConnection.close();
+});
+
+beforeEach(() =&gt; {
+  // Reset mocks between individual tests
+  jest.clearAllMocks();
+});
+
+afterEach(() =&gt; {
+  // Clean up side effects or DOM mutations
+});</code></pre>`
+  }
+];
+
+const jestCliPages = [
+  {
+    kicker: "Testing / Jest / CLI",
+    title: "Command-Line Interface Capabilities",
+    lead: "Use CLI flags to control test execution and speed up debugging.",
+    content: `<div class="concept-list"><section><span>W</span><div><h3>Watch Mode</h3><p><code>npx jest --watch</code></p><p>Re-runs tests affected by changed files.</p></div></section><section><span>1</span><div><h3>Single File</h3><p><code>npx jest path/to/file.test.js</code></p></div></section><section><span>T</span><div><h3>Filter by Test Name</h3><p><code>npx jest -t "fetches successfully"</code></p></div></section><section><span>%</span><div><h3>Coverage</h3><p><code>npx jest --coverage</code></p></div></section><section><span>!</span><div><h3>Bail on First Failure</h3><p><code>npx jest --bail</code></p></div></section><section><span>D</span><div><h3>Detect Open Handles</h3><p><code>npx jest --detectOpenHandles</code></p><p>Finds asynchronous operations preventing Jest from exiting.</p></div></section></div>`
+  }
+];
+
+const jestConfigurationPages = [
+  {
+    kicker: "Testing / Jest / Configuration",
+    title: "Essential Configuration",
+    lead: "Create jest.config.js to customize discovery, environments, coverage, setup, and transforms.",
+    content: `<p>Generate a default configuration with <code>npx jest --init</code>, or create <code>jest.config.js</code>:</p><pre><span class="language">JavaScript</span><code>module.exports = {
+  // Use 'jsdom' for browser/React tests or 'node' for backend tests
+  testEnvironment: 'node',
+
+  // Match test files
+  testMatch: ['**/__tests__/**/*.[jt]s?(x)', '**/?(*.)+(spec|test).[jt]s?(x)'],
+
+  // Enable code coverage reporting
+  collectCoverage: true,
+  coverageDirectory: 'coverage',
+
+  // Run setup files before tests
+  setupFilesAfterEnv: ['&lt;rootDir&gt;/jest.setup.js'],
+
+  // Transform files with Babel or ts-jest
+  transform: {
+    '^.+\\\\.(mjs|jsx?|tsx?)$': 'babel-jest',
+  },
+
+  // Ignore specific directories
+  modulePathIgnorePatterns: ['&lt;rootDir&gt;/dist/'],
+};</code></pre>`
+  }
+];
+
 const csharpFundamentalsPages = [
   {
     kicker: "C# / Fundamentals / Core Syntax",
@@ -1948,6 +2129,19 @@ book.chapters = [
           { number: "03", title: "Mocking & Test Data", pages: compactMockingDataPages },
           { number: "04", title: "Moq", pages: compactMoqPages }
         ]
+      },
+      {
+        number: "02",
+        title: "Jest",
+        sections: [
+          { number: "01", title: "Overview", pages: jestOverviewPages },
+          { number: "02", title: "Tests, Matchers & Mocking", pages: jestTestingPages },
+          { number: "03", title: "Configuration", pages: jestConfigurationPages },
+          { number: "04", title: "Module & API Mocking", pages: jestModuleMockingPages },
+          { number: "05", title: "Timers & Async Testing", pages: jestTimerPages },
+          { number: "06", title: "Lifecycle Hooks", pages: jestLifecyclePages },
+          { number: "07", title: "CLI", pages: jestCliPages }
+        ]
       }
     ]
   },
@@ -1980,6 +2174,11 @@ book.chapters = [
         ]
       }
     ]
+  },
+  {
+    number: "07",
+    title: "Dev Tools",
+    topics: []
   }
 ];
 
