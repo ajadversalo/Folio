@@ -4,7 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "node server.js",
-    "build": "node scripts/build.js"
+    "build": "node scripts/build.js",
+    "db:migrate-data": "node scripts/migrate-data.js",
+    "db:seed-book": "node scripts/seed-book.js"
   },
   "dependencies": {
     "@libsql/client": "^0.17.4",

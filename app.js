@@ -1,5 +1,5 @@
-const book = globalThis.FOLIO_BOOK;
-const pages = book.chapters.flatMap((chapter, chapterIndex) =>
+let book = globalThis.FOLIO_BOOK;
+function flattenPages(sourceBook) { return sourceBook.chapters.flatMap((chapter, chapterIndex) =>
   chapter.topics.flatMap((topic, topicIndex) =>
     topic.sections.flatMap((section, sectionIndex) =>
       section.pages.map((page, pageIndex) => ({
@@ -11,7 +11,8 @@ const pages = book.chapters.flatMap((chapter, chapterIndex) =>
       }))
     )
   )
-);
+); }
+let pages = flattenPages(book);
 let current = Math.min(Number(localStorage.getItem("folio-page") || 0), pages.length - 1);
 const defaultExpandedGroups = book.chapters.flatMap((chapter, ci) => [
   `chapter-${ci}`,
@@ -164,6 +165,22 @@ async function hydrateRemoteState() {
   }
 }
 
+async function hydrateBook() {
+  try {
+    const response = await fetch("/api/book", { cache: "no-store" });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const payload = await response.json();
+    if (!payload.book?.chapters || !Array.isArray(payload.book.chapters)) throw new Error("Invalid book response");
+    book = payload.book;
+    pages = flattenPages(book);
+    if (!pages.length) throw new Error("The database book has no pages");
+    current = Math.max(0, Math.min(pages.length - 1, current));
+    render();
+  } catch (error) {
+    console.warn("Folio is using bundled book content until the database is available.", error);
+  }
+}
+
 function renderContents() {
   document.querySelector("#contents").innerHTML = book.chapters.map((chapter, ci) =>
     `<section class="chapter-group">
@@ -251,5 +268,5 @@ pageSoundToggle.addEventListener("change", () => {
 function showToast(message) { const toast = document.querySelector("#toast"); toast.textContent = message; toast.classList.add("show"); setTimeout(() => toast.classList.remove("show"), 1800); }
 pageSoundToggle.checked = pageSoundEnabled;
 document.body.dataset.theme = theme; applyReaderSize(); render();
-if (typeof location !== "undefined") hydrateRemoteState();
+if (typeof location !== "undefined") hydrateBook().then(hydrateRemoteState);
 if ("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("/sw.js"));

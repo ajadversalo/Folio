@@ -13,7 +13,7 @@ Without configuration, Folio creates a local `folio.db` SQLite-compatible databa
 
 ## Connect Turso
 
-Copy `.env.example` to `.env`, add your database URL and token, then expose those variables to the Node process before running the app:
+Copy `.env.example` to `.env.local` (or `.env`) and add your database URL and token before running the app:
 
 ```sh
 TURSO_DATABASE_URL=libsql://your-database-your-org.turso.io
@@ -22,6 +22,28 @@ npm run dev
 ```
 
 The server creates the `reader_state` table on startup. Credentials stay on the server and are never sent to the browser. Each browser installation gets an anonymous ID used to sync page progress, theme, text size, sound preference, expanded sections, and bookmarks. Local storage remains as an offline cache.
+
+## Import and manage book content
+
+Import the complete hierarchy from `constants.js` into Turso:
+
+```sh
+npm run db:seed-book
+```
+
+The import transaction synchronizes the `books`, `chapters`, `topics`, `sections`, and `pages` tables with the bundled source. It preserves empty hierarchy entries and their display order. The reader loads this content from `/api/book`; bundled content remains available as an offline fallback.
+
+Run this command again after changing bundled content. Once Turso is the editorial source of truth, content can instead be changed directly in those tables without rebuilding the application.
+
+## Migrate an existing local database
+
+After configuring the remote Turso credentials in `.env.local` or `.env`, run:
+
+```sh
+npm run db:migrate-data
+```
+
+This reads `folio.db` and upserts its reader-state rows into Turso. Existing Turso rows are only replaced when the local row has a newer `updated_at` timestamp, so the command is safe to run again. Set `LOCAL_DATABASE_PATH` in `.env` if the local database is elsewhere.
 
 ## Verify
 

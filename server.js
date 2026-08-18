@@ -1,8 +1,8 @@
-require("dotenv").config({ quiet: true });
+require("dotenv").config({ path: [".env.local", ".env"], quiet: true });
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
-const { migrate, getReaderState, saveReaderState } = require("./db");
+const { migrate, getBook, getReaderState, saveReaderState } = require("./db");
 
 const root = __dirname;
 const types = { ".html": "text/html", ".css": "text/css", ".js": "text/javascript", ".json": "application/json", ".svg": "image/svg+xml", ".png": "image/png" };
@@ -38,6 +38,16 @@ function validState(value) {
 
 async function handleRequest(req, res) {
   const urlPath = decodeURIComponent(req.url.split("?")[0]);
+  if (urlPath === "/api/book") {
+    if (req.method !== "GET") return json(res, 405, { error: "Method not allowed" });
+    try {
+      const book = await getBook();
+      return book ? json(res, 200, { book }) : json(res, 404, { error: "Book content has not been imported" });
+    } catch (error) {
+      console.error("Book request failed:", error);
+      return json(res, 500, { error: "Unable to load book content" });
+    }
+  }
   const stateMatch = urlPath.match(/^\/api\/state\/([a-zA-Z0-9_-]{16,64})$/);
   if (stateMatch) {
     try {
