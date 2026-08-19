@@ -2071,6 +2071,69 @@ throw new ArgumentNullException("order");</code></pre><p>If left uncaught, it pr
   }
 ];
 
+const azureLearningPath = [
+  {
+    number: "01",
+    title: "Azure Foundations & Organization",
+    focus: "How Azure structures and isolates resources.",
+    sections: [
+      ["01", "Management Hierarchy", "Understand how <strong>Subscriptions</strong> contain <strong>Resource Groups</strong>, and how Resource Groups act as logical containers for assets such as Virtual Machines, App Services, and databases."],
+      ["02", "Resource Group Lifecycle", "Learn how permissions, tags, and lifecycle actions apply at the Resource Group level—including deleting an entire environment as one coordinated unit."],
+      ["03", "Azure Resource Manager (ARM)", "Learn the core mechanics of how Azure Resource Manager receives, validates, and processes deployment requests across Azure resources."]
+    ]
+  },
+  {
+    number: "02",
+    title: "Entra ID & Identity",
+    focus: "How authentication and authorization work in Microsoft's cloud.",
+    sections: [
+      ["01", "Users vs. Application Identities", "Distinguish human identities from application identities, including <strong>Service Principals</strong> and <strong>Managed Identities</strong>."],
+      ["02", "Role-Based Access Control (RBAC)", "Master the purpose and practical differences of the core built-in roles: <strong>Owner</strong>, <strong>Contributor</strong>, and <strong>Reader</strong>."],
+      ["03", "Assignment Scope", "Understand how role assignments inherit through the Azure hierarchy when applied at the Subscription, Resource Group, or individual Resource level."]
+    ]
+  },
+  {
+    number: "03",
+    title: "Azure DevOps & Service Connections",
+    focus: "Securely connecting your CI/CD platform to Azure.",
+    sections: [
+      ["01", "Service Connections", "Learn how Azure DevOps uses Service Connections to access Azure without embedding credentials directly in pipeline YAML."],
+      ["02", "Workload Identity Federation", "Study how Entra ID uses OpenID Connect (OIDC) to trust Azure Pipelines dynamically, eliminating the need to manage long-lived client secrets."],
+      ["03", "Pipeline Permissions", "Learn how to authorize and restrict the individual pipelines that may use a Service Connection, following least-privilege access practices."]
+    ]
+  },
+  {
+    number: "04",
+    title: "Azure Pipelines & CI/CD",
+    focus: "Automating your deployments.",
+    sections: [
+      ["01", "YAML Pipeline Basics", "Learn the pipeline hierarchy: <strong>Triggers → Stages → Jobs → Steps → Tasks</strong>."],
+      ["02", "Azure CLI Tasks", "Write pipeline tasks that authenticate through a Service Connection and run <code>az</code> commands against your Resource Groups."],
+      ["03", "Infrastructure as Code (IaC)", "Use Bicep or Terraform inside a pipeline to provision a Resource Group and dynamically deploy an application host."]
+    ]
+  }
+].map(step => ({
+  number: step.number,
+  title: step.title,
+  sections: step.sections.map(([number, title, description]) => ({
+    number,
+    title,
+    pages: [{
+      kicker: `Azure learning path / Step ${step.number}`,
+      title,
+      lead: step.focus,
+      content: `<p>${description}</p><div class="chapter-card"><span>${step.number}.${number}</span><div><small>Learning sequence</small><strong>${step.title}</strong></div></div>`
+    }]
+  }))
+}));
+
+const azurePracticeProjectPages = [{
+  kicker: "Azure learning path / Capstone",
+  title: "Deploy an App Service with Azure Pipelines",
+  lead: "Put the complete learning sequence into practice with a small, automated Azure deployment.",
+  content: `<p>Build a YAML pipeline in Azure DevOps that automatically provisions a <strong>Resource Group</strong> and deploys a basic <strong>Azure App Service</strong> using Entra ID OIDC authentication.</p><section class="subsection"><h3>Definition of Done</h3><div class="concept-list"><section><span>01</span><div><h3>Organize</h3><p>Create a dedicated Resource Group and apply useful ownership and environment tags.</p></div></section><section><span>02</span><div><h3>Connect Securely</h3><p>Configure an Azure Resource Manager Service Connection backed by workload identity federation, with no long-lived client secret.</p></div></section><section><span>03</span><div><h3>Provision</h3><p>Use Bicep or Terraform to declare the Resource Group, App Service plan, and App Service.</p></div></section><section><span>04</span><div><h3>Automate</h3><p>Run validation and deployment stages from YAML, using the Service Connection for Azure authentication.</p></div></section><section><span>05</span><div><h3>Verify</h3><p>Confirm the application endpoint responds and that rerunning the pipeline is safe and repeatable.</p></div></section></div></section>`
+}];
+
 book.chapters = [
   {
     number: "01",
@@ -2153,7 +2216,16 @@ book.chapters = [
   {
     number: "05",
     title: "Azure",
-    topics: []
+    topics: [
+      ...azureLearningPath,
+      {
+        number: "05",
+        title: "Recommended First Practice Project",
+        sections: [
+          { number: "01", title: "Resource Group + App Service", pages: azurePracticeProjectPages }
+        ]
+      }
+    ]
   },
   {
     number: "06",
