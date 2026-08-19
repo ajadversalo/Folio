@@ -62,3 +62,7 @@ npm run build
 ```
 
 To run the production build locally, use `npm start`.
+
+## Deploy on Render
+
+The included `render.yaml` builds the Next.js app with `npm ci && npm run build` and starts it with `npm start`. Existing Render services that still override the repository settings can use `node server.js` as their Start Command. The server automatically binds to Render's `PORT`.

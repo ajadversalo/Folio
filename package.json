@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev -p 4173",
     "build": "next build",
-    "start": "next start -p 4173",
+    "start": "node server.js",
     "db:migrate-data": "node scripts/migrate-data.js",
     "db:seed-book": "node scripts/seed-book.js"
   },
