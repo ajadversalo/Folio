@@ -1,6 +1,6 @@
 # Folio
 
-An offline-friendly interactive reader with durable reader-state persistence in Turso.
+An offline-friendly Next.js PWA reader with durable reader-state persistence in Turso.
 
 ## Run locally
 
@@ -9,7 +9,7 @@ npm install
 npm run dev
 ```
 
-Without configuration, Folio creates a local `folio.db` SQLite-compatible database. Open `http://localhost:4173`.
+Without configuration, Folio creates a local `folio.db` SQLite-compatible database. Open `http://localhost:4173`. The app uses the Next.js App Router; content management is built into the reader sidebar.
 
 ## Connect Turso
 
@@ -43,7 +43,7 @@ Set a long random management secret in `.env.local` or in the deployment environ
 FOLIO_ADMIN_KEY=choose-a-long-random-secret
 ```
 
-Start Folio and open `http://localhost:4173/management.html`. Enter the secret to create empty chapters and topics. Management writes are validated and authorized on the server; the entered key is retained only for the current browser tab.
+Start Folio, open the sidebar, and select **Edit**. Enter the secret to create empty chapters and topics in place. Management writes are validated and authorized in Next.js route handlers; the entered key is retained only for the current browser tab.
 
 ## Migrate an existing local database
 
@@ -60,3 +60,5 @@ This reads `folio.db` and upserts its reader-state rows into Turso. Existing Tur
 ```sh
 npm run build
 ```
+
+To run the production build locally, use `npm start`.

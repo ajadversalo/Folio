@@ -182,4 +182,27 @@ async function getManagementStructure(bookId = "folio") {
   };
 }
 
-module.exports = { SCHEMA_SQL, migrate, getBook, getManagementStructure, createChapter, createTopic, getReaderState, saveReaderState };
+async function deleteTopic(topicId, bookId = "folio") {
+  const existing = await db.execute({ sql: "SELECT id FROM topics WHERE id = ? AND book_id = ?", args: [topicId, bookId] });
+  if (!existing.rows.length) throw new Error("Topic not found");
+  await db.batch([
+    { sql: "DELETE FROM pages WHERE book_id = ? AND section_id IN (SELECT id FROM sections WHERE topic_id = ?)", args: [bookId, topicId] },
+    { sql: "DELETE FROM sections WHERE book_id = ? AND topic_id = ?", args: [bookId, topicId] },
+    { sql: "DELETE FROM topics WHERE book_id = ? AND id = ?", args: [bookId, topicId] }
+  ], "write");
+  return { id: topicId };
+}
+
+async function deleteChapter(chapterId, bookId = "folio") {
+  const existing = await db.execute({ sql: "SELECT id FROM chapters WHERE id = ? AND book_id = ?", args: [chapterId, bookId] });
+  if (!existing.rows.length) throw new Error("Chapter not found");
+  await db.batch([
+    { sql: "DELETE FROM pages WHERE book_id = ? AND section_id IN (SELECT id FROM sections WHERE topic_id IN (SELECT id FROM topics WHERE chapter_id = ?))", args: [bookId, chapterId] },
+    { sql: "DELETE FROM sections WHERE book_id = ? AND topic_id IN (SELECT id FROM topics WHERE chapter_id = ?)", args: [bookId, chapterId] },
+    { sql: "DELETE FROM topics WHERE book_id = ? AND chapter_id = ?", args: [bookId, chapterId] },
+    { sql: "DELETE FROM chapters WHERE book_id = ? AND id = ?", args: [bookId, chapterId] }
+  ], "write");
+  return { id: chapterId };
+}
+
+module.exports = { SCHEMA_SQL, migrate, getBook, getManagementStructure, createChapter, createTopic, deleteChapter, deleteTopic, getReaderState, saveReaderState };

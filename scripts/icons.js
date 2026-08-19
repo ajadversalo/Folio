@@ -11,4 +11,4 @@ function icon(size) {
   const ihdr=Buffer.alloc(13); ihdr.writeUInt32BE(size,0); ihdr.writeUInt32BE(size,4); ihdr.set([8,6,0,0,0],8);
   return Buffer.concat([Buffer.from([137,80,78,71,13,10,26,10]),chunk("IHDR",ihdr),chunk("IDAT",zlib.deflateSync(Buffer.concat(rows))),chunk("IEND",Buffer.alloc(0))]);
 }
-for(const size of [192,512]) fs.writeFileSync(path.join(__dirname,"..",`icon-${size}.png`),icon(size));
+for(const size of [192,512]) fs.writeFileSync(path.join(__dirname,"..","public",`icon-${size}.png`),icon(size));

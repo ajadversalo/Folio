@@ -3,13 +3,17 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "node server.js",
-    "build": "node scripts/build.js",
+    "dev": "next dev -p 4173",
+    "build": "next build",
+    "start": "next start -p 4173",
     "db:migrate-data": "node scripts/migrate-data.js",
     "db:seed-book": "node scripts/seed-book.js"
   },
   "dependencies": {
     "@libsql/client": "^0.17.4",
-    "dotenv": "^17.4.2"
+    "dotenv": "^17.4.2",
+    "next": "^16.3.1",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
   }
 }
